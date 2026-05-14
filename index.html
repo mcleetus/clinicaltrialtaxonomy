@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clinical Trial Design Framework</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f8f7f4;
+    color: #1a1a18;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    background: #fff;
+    border-bottom: 1px solid #e2e0d8;
+    padding: 20px 28px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-left h1 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: #1a1a18;
+  }
+
+  .header-left p {
+    font-size: 12px;
+    color: #73726c;
+    margin-top: 2px;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid #d3d1c7;
+    background: #fff;
+    color: #444441;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: #f1efe8; border-color: #b4b2a9; }
+
+  .btn-primary {
+    background: #1a1a18;
+    color: #fff;
+    border-color: #1a1a18;
+  }
+  .btn-primary:hover { background: #2c2c2a; }
+
+  #search {
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid #d3d1c7;
+    background: #fff;
+    color: #1a1a18;
+    font-family: inherit;
+    width: 160px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  #search:focus { border-color: #888780; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 28px;
+    background: #fff;
+    border-bottom: 1px solid #e2e0d8;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #5f5e5a;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  #tree-container {
+    overflow: auto;
+    padding: 24px;
+    min-height: calc(100vh - 120px);
+  }
+
+  svg { display: block; }
+
+  .node rect {
+    rx: 6;
+    ry: 6;
+    stroke-width: 1;
+    cursor: pointer;
+    transition: filter 0.15s;
+  }
+
+  .node text {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 11.5px;
+    pointer-events: none;
+    dominant-baseline: central;
+  }
+
+  .node .expand-indicator {
+    font-size: 9px;
+    font-weight: 700;
+    font-family: monospace;
+    pointer-events: none;
+    dominant-baseline: central;
+  }
+
+  .node:hover rect { filter: brightness(0.93); }
+
+  .link {
+    fill: none;
+    stroke-width: 1.2;
+  }
+
+  .node.faded rect, .node.faded text { opacity: 0.2; }
+  .link.faded { opacity: 0.1; }
+  .node.matched rect { stroke-width: 2 !important; }
+
+  .depth-indicator {
+    font-size: 10px;
+    fill: #aaa9a2;
+    font-family: inherit;
+  }
+
+  @media print {
+    .page-header, .legend { position: static; }
+    #tree-container { overflow: visible; }
+    body { background: white; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-left">
+    <h1>Clinical Trial Design Framework</h1>
+    <p>Click any node to expand / collapse &nbsp;·&nbsp; Scroll to zoom &nbsp;·&nbsp; Drag to pan</p>
+  </div>
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search designs…" oninput="handleSearch(this.value)">
+    <button class="btn" onclick="expandAll()">Expand all</button>
+    <button class="btn" onclick="collapseAll()">Collapse all</button>
+    <button class="btn" onclick="resetZoom()">Reset view</button>
+    <button class="btn btn-primary" onclick="window.print()">Print / PDF</button>
+  </div>
+</div>
+
+<div class="legend" id="legend"></div>
+<div id="tree-container"><svg id="tree-svg"></svg></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>
+const COLORS = {
+  root:          { fill: "#F1EFE8", stroke: "#888780", text: "#2C2C2A", link: "#B4B2A9", label: "Root" },
+  observational: { fill: "#E1F5EE", stroke: "#1D9E75", text: "#085041", link: "#5DCAA5", label: "Observational studies" },
+  experimental:  { fill: "#EEEDFE", stroke: "#7F77DD", text: "#26215C", link: "#AFA9EC", label: "Experimental studies" },
+  randomization: { fill: "#E6F1FB", stroke: "#378ADD", text: "#042C53", link: "#85B7EB", label: "By randomization" },
+  objective:     { fill: "#FAECE7", stroke: "#D85A30", text: "#4A1B0C", link: "#F0997B", label: "By objective" },
+  phase:         { fill: "#FAEEDA", stroke: "#BA7517", text: "#412402", link: "#EF9F27", label: "By phase" },
+  dosefinding:   { fill: "#EAF3DE", stroke: "#639922", text: "#173404", link: "#97C459", label: "Dose-finding designs" },
+  adaptive:      { fill: "#FBEAF0", stroke: "#D4537E", text: "#4B1528", link: "#ED93B1", label: "Adaptive designs" },
+  pragmatic:     { fill: "#E1F5EE", stroke: "#0F6E56", text: "#04342C", link: "#1D9E75", label: "Pragmatic vs. explanatory" },
+  special:       { fill: "#FCEBEB", stroke: "#E24B4A", text: "#501313", link: "#F09595", label: "Special designs" }
+};
+
+const DATA = {
+  name: "Clinical trial designs", colorKey: "root", defaultOpen: true,
+  children: [
+    {
+      name: "Observational studies", colorKey: "observational", defaultOpen: true,
+      children: [
+        {
+          name: "Descriptive", colorKey: "observational", defaultOpen: true,
+          children: [
+            { name: "Case report", colorKey: "observational" },
+            { name: "Case series", colorKey: "observational" },
+            { name: "Cross-sectional (descriptive)", colorKey: "observational" }
+          ]
+        },
+        {
+          name: "Analytical", colorKey: "observational", defaultOpen: true,
+          children: [
+            { name: "Cohort (prospective / retrospective)", colorKey: "observational" },
+            { name: "Case–control", colorKey: "observational" },
+            { name: "Cross-sectional (analytic)", colorKey: "observational" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "Experimental studies (clinical trials)", colorKey: "experimental", defaultOpen: true,
+      children: [
+        {
+          name: "By randomization", colorKey: "randomization", defaultOpen: false,
+          children: [
+            {
+              name: "Randomized controlled trial (RCT)", colorKey: "randomization", defaultOpen: false,
+              children: [
+                { name: "Parallel-group", colorKey: "randomization" },
+                { name: "Crossover", colorKey: "randomization" },
+                { name: "Cluster-randomized", colorKey: "randomization" },
+                { name: "Stepped-wedge cluster", colorKey: "randomization" },
+                { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" }
+              ]
+            },
+            {
+              name: "Non-randomized / quasi-experimental", colorKey: "randomization", defaultOpen: false,
+              children: [
+                { name: "Controlled before–after", colorKey: "randomization" },
+                { name: "Interrupted time series", colorKey: "randomization" },
+                { name: "Single-arm trial", colorKey: "randomization" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "By objective", colorKey: "objective", defaultOpen: false,
+          children: [
+            { name: "Superiority", colorKey: "objective" },
+            { name: "Non-inferiority", colorKey: "objective" },
+            { name: "Equivalence", colorKey: "objective" }
+          ]
+        },
+        {
+          name: "By phase", colorKey: "phase", defaultOpen: false,
+          children: [
+            { name: "Phase I — safety & dose-finding", colorKey: "phase" },
+            { name: "Phase II — preliminary efficacy", colorKey: "phase" },
+            { name: "Phase III — confirmatory", colorKey: "phase" },
+            { name: "Phase IV — post-marketing", colorKey: "phase" }
+          ]
+        },
+        {
+          name: "Dose-finding designs", colorKey: "dosefinding", defaultOpen: false,
+          children: [
+            {
+              name: "Rule-based", colorKey: "dosefinding", defaultOpen: false,
+              children: [
+                { name: "3+3", colorKey: "dosefinding" },
+                { name: "Accelerated titration", colorKey: "dosefinding" }
+              ]
+            },
+            {
+              name: "Model-based / model-assisted", colorKey: "dosefinding", defaultOpen: false,
+              children: [
+                { name: "CRM (continual reassessment method)", colorKey: "dosefinding" },
+                { name: "mTPI / mTPI-2", colorKey: "dosefinding" },
+                { name: "BOIN", colorKey: "dosefinding" },
+                { name: "Bayesian optimal interval", colorKey: "dosefinding" }
+              ]
+            }
+          ]
+        },
+        {
+          name: "Adaptive designs", colorKey: "adaptive", defaultOpen: false,
+          children: [
+            { name: "Group sequential (early stopping)", colorKey: "adaptive" },
+            { name: "Sample size re-estimation", colorKey: "adaptive" },
+            { name: "Response-adaptive randomization", colorKey: "adaptive" },
+            { name: "Adaptive dose-finding", colorKey: "adaptive" },
+            { name: "Drop-the-loser / pick-the-winner", colorKey: "adaptive" },
+            { name: "Platform trials", colorKey: "adaptive" },
+            { name: "Basket trials", colorKey: "adaptive" },
+            { name: "Umbrella trials", colorKey: "adaptive" }
+          ]
+        },
+        {
+          name: "Pragmatic vs. explanatory", colorKey: "pragmatic", defaultOpen: false,
+          children: [
+            { name: "Pragmatic (real-world effectiveness)", colorKey: "pragmatic" },
+            { name: "Explanatory (ideal conditions)", colorKey: "pragmatic" }
+          ]
+        },
+        {
+          name: "Special designs", colorKey: "special", defaultOpen: false,
+          children: [
+            { name: "N-of-1 trials", colorKey: "special" },
+            { name: "Hybrid effectiveness–implementation trials", colorKey: "special" },
+            { name: "Non-inferiority cluster trials", colorKey: "special" },
+            { name: "Registry-based randomized trials", colorKey: "special" },
+            { name: "Decentralized / virtual trials", colorKey: "special" }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+const NODE_H = 28;
+const NODE_PAD_X = 10;
+const NODE_PAD_Y = 6;
+const H_GAP = 220;
+const V_GAP = 36;
+const MARGIN = { top: 20, right: 60, bottom: 20, left: 30 };
+
+let root, svgEl, g, zoom, treeLayout;
+let allNodes = [];
+let searchActive = false;
+
+function getNodeWidth(name) {
+  return Math.max(100, name.length * 6.8 + NODE_PAD_X * 2 + 16);
+}
+
+function setupLegend() {
+  const legend = document.getElementById('legend');
+  Object.entries(COLORS).filter(([k]) => k !== 'root').forEach(([key, c]) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<div class="legend-dot" style="background:${c.fill};border:1px solid ${c.stroke}"></div><span>${c.label}</span>`;
+    legend.appendChild(item);
+  });
+}
+
+function initTree() {
+  root = d3.hierarchy(DATA);
+
+  root.each(d => {
+    if (d.data.defaultOpen === false && d.children) {
+      d._children = d.children;
+      d.children = null;
+    }
+  });
+
+  treeLayout = d3.tree().nodeSize([V_GAP, H_GAP]);
+
+  const container = document.getElementById('tree-container');
+  const W = Math.max(container.clientWidth - 48, 900);
+  const H = Math.max(container.clientHeight - 48, 600);
+
+  svgEl = d3.select('#tree-svg')
+    .attr('width', W)
+    .attr('height', H);
+
+  zoom = d3.zoom()
+    .scaleExtent([0.3, 3])
+    .on('zoom', (e) => g.attr('transform', e.transform));
+
+  svgEl.call(zoom);
+
+  g = svgEl.append('g')
+    .attr('transform', `translate(${MARGIN.left + 20},${H / 2})`);
+
+  update(root);
+
+  setTimeout(() => resetZoom(), 100);
+}
+
+function update(source) {
+  treeLayout(root);
+  allNodes = root.descendants();
+  const links = root.links();
+
+  const maxDepth = d3.max(allNodes, d => d.depth);
+  const svgW = (maxDepth + 1) * H_GAP + 320 + MARGIN.left + MARGIN.right;
+  const extent = d3.extent(allNodes, d => d.x);
+  const svgH = (extent[1] - extent[0]) + V_GAP * 4 + MARGIN.top + MARGIN.bottom;
+
+  svgEl.attr('width', Math.max(svgW, 900)).attr('height', Math.max(svgH, 500));
+
+  const t = d3.transition().duration(300).ease(d3.easeCubicInOut);
+
+  const link = g.selectAll('.link').data(links, d => d.target.data.name + d.source.data.name);
+
+  link.enter().insert('path', '.node')
+    .attr('class', 'link')
+    .attr('stroke', d => COLORS[d.target.data.colorKey]?.link || '#ccc')
+    .attr('stroke-opacity', 0)
+    .attr('d', () => {
+      const o = { x: source.x0 ?? source.x, y: source.y0 ?? source.y };
+      return diagonal(o, o, 0);
+    })
+    .merge(link)
+    .transition(t)
+    .attr('stroke-opacity', 0.6)
+    .attr('stroke', d => COLORS[d.target.data.colorKey]?.link || '#ccc')
+    .attr('d', d => diagonal(d.source, d.target, getNodeWidth(d.source.data.name)));
+
+  link.exit().transition(t)
+    .attr('opacity', 0)
+    .attr('d', () => {
+      const o = { x: source.x, y: source.y };
+      return diagonal(o, o, 0);
+    })
+    .remove();
+
+  const node = g.selectAll('.node').data(allNodes, d => d.data.name);
+
+  const nodeEnter = node.enter().append('g')
+    .attr('class', 'node')
+    .attr('transform', d => `translate(${source.y0 ?? source.y},${source.x0 ?? source.x})`)
+    .attr('opacity', 0)
+    .on('click', (event, d) => {
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else if (d._children) {
+        d.children = d._children;
+        d._children = null;
+      }
+      update(d);
+    });
+
+  nodeEnter.append('rect')
+    .attr('height', NODE_H)
+    .attr('y', -NODE_H / 2)
+    .attr('rx', 5)
+    .attr('width', d => getNodeWidth(d.data.name))
+    .attr('fill', d => COLORS[d.data.colorKey]?.fill || '#F1EFE8')
+    .attr('stroke', d => COLORS[d.data.colorKey]?.stroke || '#888');
+
+  nodeEnter.append('text')
+    .attr('class', 'node-label')
+    .attr('x', NODE_PAD_X)
+    .attr('y', 0)
+    .attr('fill', d => COLORS[d.data.colorKey]?.text || '#1a1a18')
+    .attr('font-weight', d => (d.depth <= 1) ? 600 : (d.depth === 2 ? 500 : 400))
+    .text(d => d.data.name);
+
+  nodeEnter.append('text')
+    .attr('class', 'expand-indicator')
+    .attr('x', d => getNodeWidth(d.data.name) - 12)
+    .attr('y', 0)
+    .attr('fill', d => COLORS[d.data.colorKey]?.stroke || '#888')
+    .attr('text-anchor', 'middle')
+    .text(d => (d._children ? '▸' : (d.children ? '▾' : '')));
+
+  const nodeUpdate = nodeEnter.merge(node);
+
+  nodeUpdate.transition(t)
+    .attr('transform', d => `translate(${d.y},${d.x})`)
+    .attr('opacity', 1);
+
+  nodeUpdate.select('rect')
+    .attr('width', d => getNodeWidth(d.data.name))
+    .attr('fill', d => COLORS[d.data.colorKey]?.fill || '#F1EFE8')
+    .attr('stroke', d => COLORS[d.data.colorKey]?.stroke || '#888');
+
+  nodeUpdate.select('.expand-indicator')
+    .attr('x', d => getNodeWidth(d.data.name) - 12)
+    .text(d => (d._children ? '▸' : (d.children ? '▾' : '')));
+
+  nodeUpdate.select('.node-label')
+    .attr('font-weight', d => (d.depth <= 1) ? 600 : (d.depth === 2 ? 500 : 400));
+
+  node.exit().transition(t)
+    .attr('transform', d => `translate(${source.y},${source.x})`)
+    .attr('opacity', 0)
+    .remove();
+
+  root.each(d => {
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+
+  if (searchActive) applySearch(document.getElementById('search').value);
+}
+
+function diagonal(s, d, sourceWidth) {
+  const sx = s.y + sourceWidth;
+  const sy = s.x;
+  const dx = d.y;
+  const dy = d.x;
+  const mx = (sx + dx) / 2;
+  return `M${sx},${sy} C${mx},${sy} ${mx},${dy} ${dx},${dy}`;
+}
+
+function expandAll() {
+  root.each(d => {
+    if (d._children) {
+      d.children = d._children;
+      d._children = null;
+    }
+  });
+  update(root);
+}
+
+function collapseAll() {
+  root.each(d => {
+    if (d.depth > 0 && d.children) {
+      d._children = d.children;
+      d.children = null;
+    }
+  });
+  update(root);
+}
+
+function resetZoom() {
+  const container = document.getElementById('tree-container');
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+  svgEl.transition().duration(400).call(
+    zoom.transform,
+    d3.zoomIdentity.translate(MARGIN.left + 20, H / 2).scale(1)
+  );
+}
+
+function handleSearch(query) {
+  searchActive = query.trim().length > 0;
+  applySearch(query);
+}
+
+function applySearch(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) {
+    g.selectAll('.node').classed('faded', false).classed('matched', false);
+    g.selectAll('.link').classed('faded', false);
+    return;
+  }
+
+  const matchedNames = new Set();
+  const matchedAncestors = new Set();
+
+  allNodes.forEach(d => {
+    if (d.data.name.toLowerCase().includes(q)) {
+      matchedNames.add(d.data.name);
+      let p = d.parent;
+      while (p) {
+        matchedAncestors.add(p.data.name);
+        p = p.parent;
+      }
+    }
+  });
+
+  g.selectAll('.node').each(function(d) {
+    const el = d3.select(this);
+    const isMatch = matchedNames.has(d.data.name);
+    const isAnc = matchedAncestors.has(d.data.name);
+    el.classed('faded', !isMatch && !isAnc);
+    el.classed('matched', isMatch);
+  });
+
+  g.selectAll('.link').each(function(d) {
+    const visible = matchedNames.has(d.target.data.name) || matchedAncestors.has(d.target.data.name);
+    d3.select(this).classed('faded', !visible);
+  });
+}
+
+setupLegend();
+initTree();
+window.addEventListener('resize', () => {
+  const container = document.getElementById('tree-container');
+  const W = Math.max(container.clientWidth - 48, 900);
+  const H = Math.max(container.clientHeight - 48, 600);
+  svgEl.attr('width', W).attr('height', H);
+});
+</script>
+</body>
+</html>
