@@ -251,7 +251,12 @@ const DATA = {
                   children: [
                     { name: "Individually randomized", colorKey: "randomization" },
                     { name: "Stepped-wedge cluster", colorKey: "randomization" },
-                    { name: "Cluster-randomized", colorKey: "randomization" }
+                    { name: "Cluster-randomized", colorKey: "randomization",
+                      Children: [
+                        { name: "Stepped-wedge cluster", colorKey: "randomization" }
+                        ]
+                        }
+                     ]
                   ]
                 }
               ]
