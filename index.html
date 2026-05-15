@@ -5,380 +5,552 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clinical Trial Design Taxonomy</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Reset & CSS vars ──────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #f8f7f4;
-    color: #1a1a18;
-    min-height: 100vh;
-  }
+:root {
+  --bg:              #f8f7f4;
+  --surface:         #ffffff;
+  --border:          #e2e0d8;
+  --text:            #1a1a18;
+  --text-soft:       #5f5e5a;
+  --text-muted:      #9f9e98;
+  --btn-bg:          #ffffff;
+  --btn-border:      #d3d1c7;
+  --btn-hover:       #f1efe8;
+  --btn-hover-bdr:   #b4b2a9;
+  --accent:          #1a1a18;
+  --accent-inv:      #ffffff;
+  --tip-bg:          rgba(22,22,20,0.93);
+  --tip-text:        #f5f4f0;
+  --shadow:          rgba(0,0,0,0.11);
+}
+body.dark {
+  --bg:              #1c1c1a;
+  --surface:         #252523;
+  --border:          #393937;
+  --text:            #f0efe8;
+  --text-soft:       #b8b7b0;
+  --text-muted:      #77766f;
+  --btn-bg:          #2e2e2c;
+  --btn-border:      #484845;
+  --btn-hover:       #3a3a38;
+  --btn-hover-bdr:   #5c5c58;
+  --accent:          #e8e6de;
+  --accent-inv:      #1c1c1a;
+  --tip-bg:          rgba(240,239,232,0.97);
+  --tip-text:        #1c1c1a;
+  --shadow:          rgba(0,0,0,0.38);
+}
 
-  .page-header {
-    background: #fff;
-    border-bottom: 1px solid #e2e0d8;
-    padding: 20px 28px 16px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background .22s, color .22s;
+}
 
-  .header-left h1 {
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-    color: #1a1a18;
-  }
+/* ── Header ────────────────────────────────────────── */
+.page-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px 6px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  transition: background .22s, border-color .22s;
+}
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.header-title h1 { font-size: 15px; font-weight: 600; letter-spacing: -.3px; color: var(--text); }
+.header-title p  { font-size: 10.5px; color: var(--text-muted); margin-top: 1px; }
 
-  .header-left p {
-    font-size: 12px;
-    color: #73726c;
-    margin-top: 2px;
-  }
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.btn {
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .12s, border-color .12s;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+.btn:hover { background: var(--btn-hover); border-color: var(--btn-hover-bdr); }
+.btn-primary { background: var(--accent); color: var(--accent-inv); border-color: var(--accent); }
+.btn-primary:hover { opacity: .82; }
+.btn-depth { font-weight: 600; min-width: 28px; text-align: center; }
+.btn-depth.active { background: #4f6ef7; color: #fff; border-color: #4f6ef7; }
+.vdiv { width: 1px; height: 14px; background: var(--border); flex-shrink: 0; }
 
-  .controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
+#search {
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--btn-border);
+  background: var(--btn-bg);
+  color: var(--text);
+  font-family: inherit;
+  width: 140px;
+  outline: none;
+  transition: border-color .15s;
+}
+#search:focus { border-color: #4f6ef7; }
+#search::placeholder { color: var(--text-muted); }
 
-  .btn {
-    font-size: 12px;
-    padding: 5px 12px;
-    border-radius: 6px;
-    border: 1px solid #d3d1c7;
-    background: #fff;
-    color: #444441;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .btn:hover { background: #f1efe8; border-color: #b4b2a9; }
+/* breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  min-height: 14px;
+}
+.bc-sep  { opacity: .4; }
+.bc-item { color: var(--text-soft); }
+.bc-leaf { color: var(--text); font-weight: 600; }
 
-  .btn-primary {
-    background: #1a1a18;
-    color: #fff;
-    border-color: #1a1a18;
-  }
-  .btn-primary:hover { background: #2c2c2a; }
+/* ── Legend ────────────────────────────────────────── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 6px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  transition: background .22s, border-color .22s;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--text-soft); }
+.legend-dot  { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
 
-  #search {
-    font-size: 12px;
-    padding: 5px 10px;
-    border-radius: 6px;
-    border: 1px solid #d3d1c7;
-    background: #fff;
-    color: #1a1a18;
-    font-family: inherit;
-    width: 160px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  #search:focus { border-color: #888780; }
+/* ── Tree ──────────────────────────────────────────── */
+#tree-container {
+  overflow: auto;
+  padding: 20px;
+  min-height: calc(100vh - 120px);
+  position: relative;
+}
+svg { display: block; }
+.node rect { stroke-width: 1; cursor: pointer; }
+.node text {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 11.5px;
+  pointer-events: none;
+  dominant-baseline: central;
+}
+.node:hover > rect { filter: brightness(.88); }
+.link { fill: none; stroke-width: 1.3; }
 
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px 28px;
-    background: #fff;
-    border-bottom: 1px solid #e2e0d8;
-  }
+/* search states */
+.node.faded   { opacity: .12; }
+.link.faded   { opacity: .07; }
+.node.matched > rect { stroke-width: 2.5 !important; filter: brightness(.84); }
 
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: #5f5e5a;
-  }
+/* hover-path states */
+.node.dimmed  { opacity: .1; }
+.link.dimmed  { opacity: .06; }
+.node.lit > rect { filter: brightness(.88); }
 
-  .legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
+/* ── Tooltip ───────────────────────────────────────── */
+#tooltip {
+  position: fixed;
+  background: var(--tip-bg);
+  color: var(--tip-text);
+  padding: 7px 11px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  max-width: 260px;
+  line-height: 1.48;
+  pointer-events: none;
+  z-index: 600;
+  opacity: 0;
+  transition: opacity .14s;
+  box-shadow: 0 4px 18px var(--shadow);
+}
 
-  #tree-container {
-    overflow: auto;
-    padding: 24px;
-    min-height: calc(100vh - 120px);
-  }
+/* ── Minimap ───────────────────────────────────────── */
+#minimap-wrap {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  box-shadow: 0 2px 12px var(--shadow);
+  overflow: hidden;
+  z-index: 300;
+  transition: background .22s, border-color .22s;
+  user-select: none;
+}
+.mm-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding: 4px 8px 1px;
+}
+#minimap-svg { display: block; cursor: crosshair; }
 
-  svg { display: block; }
+/* ── Modal ─────────────────────────────────────────── */
+#modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 900;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+#modal-overlay.open { display: flex; }
+#modal-box {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 20px 24px 18px;
+  max-width: 680px;
+  width: 93vw;
+  max-height: 88vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 50px rgba(0,0,0,.28);
+  border: 1px solid var(--border);
+}
+.modal-h  { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.modal-sh { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4; }
+#modal-x {
+  position: absolute; top: 11px; right: 13px;
+  background: none; border: none; font-size: 16px; cursor: pointer;
+  color: var(--text-muted); padding: 2px 6px; border-radius: 4px; font-family: inherit;
+}
+#modal-x:hover { background: var(--btn-hover); color: var(--text); }
+.modal-note {
+  font-size: 10px; color: var(--text-muted); margin-top: 10px;
+  border-top: 1px solid var(--border); padding-top: 9px; line-height: 1.5;
+}
+#poi-svg { width: 100%; overflow: visible; }
 
-  .node rect {
-    rx: 6;
-    ry: 6;
-    stroke-width: 1;
-    cursor: pointer;
-    transition: filter 0.15s;
-  }
-
-  .node text {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    font-size: 11.5px;
-    pointer-events: none;
-    dominant-baseline: central;
-  }
-
-  .node .expand-indicator {
-    font-size: 9px;
-    font-weight: 700;
-    font-family: monospace;
-    pointer-events: none;
-    dominant-baseline: central;
-  }
-
-  .node:hover rect { filter: brightness(0.93); }
-
-  .link {
-    fill: none;
-    stroke-width: 1.2;
-  }
-
-  .node.faded rect, .node.faded text { opacity: 0.2; }
-  .link.faded { opacity: 0.1; }
-  .node.matched rect { stroke-width: 2 !important; }
-
-  .depth-indicator {
-    font-size: 10px;
-    fill: #aaa9a2;
-    font-family: inherit;
-  }
-
-  @media print {
-    .page-header, .legend { position: static; }
-    #tree-container { overflow: visible; }
-    body { background: white; }
-  }
+/* ── Print ─────────────────────────────────────────── */
+@media print {
+  .page-header { position: static; }
+  #tree-container { overflow: visible; }
+  #minimap-wrap, #tooltip, #modal-overlay { display: none !important; }
+  body { background: white; }
+}
 </style>
 </head>
 <body>
 
+<!-- ══ Header ══════════════════════════════════════ -->
 <div class="page-header">
-  <div class="header-left">
-    <h1>Clinical Trial Design Taxonomy</h1>
-    <p>Click any node to expand / collapse &nbsp;·&nbsp; Scroll to zoom &nbsp;·&nbsp; Drag to pan</p>
+  <div class="header-row">
+    <div class="header-title">
+      <h1>Clinical Trial Design Taxonomy</h1>
+      <p>Click node to expand/collapse &nbsp;·&nbsp; Scroll/pinch to zoom &nbsp;·&nbsp; Drag to pan &nbsp;·&nbsp; Hover for definitions</p>
+    </div>
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search designs…" oninput="handleSearch(this.value)">
+      <div class="vdiv"></div>
+      <button class="btn btn-depth" id="d1"   onclick="showDepth(1)" title="Level 1">L1</button>
+      <button class="btn btn-depth" id="d2"   onclick="showDepth(2)" title="Level 2">L2</button>
+      <button class="btn btn-depth" id="d3"   onclick="showDepth(3)" title="Level 3">L3</button>
+      <button class="btn btn-depth active" id="dall" onclick="expandAll()" title="All">All</button>
+      <div class="vdiv"></div>
+      <button class="btn" onclick="collapseAll()">Collapse all</button>
+      <button class="btn" onclick="resetZoom()">Reset view</button>
+      <button class="btn" id="darkBtn" onclick="toggleDark()">🌙 Dark</button>
+      <button class="btn btn-primary" onclick="window.print()">Print / PDF</button>
+    </div>
   </div>
-  <div class="controls">
-    <input type="text" id="search" placeholder="Search designs…" oninput="handleSearch(this.value)">
-    <button class="btn" onclick="expandAll()">Expand all</button>
-    <button class="btn" onclick="collapseAll()">Collapse all</button>
-    <button class="btn" onclick="resetZoom()">Reset view</button>
-    <button class="btn btn-primary" onclick="window.print()">Print / PDF</button>
+  <div class="breadcrumb" id="breadcrumb">
+    <span class="bc-item">Clinical trial designs</span>
   </div>
 </div>
 
+<!-- ══ Legend ══════════════════════════════════════ -->
 <div class="legend" id="legend"></div>
+
+<!-- ══ Tree ════════════════════════════════════════ -->
 <div id="tree-container"><svg id="tree-svg"></svg></div>
+
+<!-- ══ Tooltip ═════════════════════════════════════ -->
+<div id="tooltip"></div>
+
+<!-- ══ Minimap ═════════════════════════════════════ -->
+<div id="minimap-wrap">
+  <div class="mm-label">Overview</div>
+  <svg id="minimap-svg" width="190" height="120"></svg>
+</div>
+
+<!-- ══ Modal (POI diagram) ═════════════════════════ -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal-box">
+    <button id="modal-x" onclick="document.getElementById('modal-overlay').classList.remove('open')">✕</button>
+    <p class="modal-h">POI Research Pathway</p>
+    <p class="modal-sh">Decision framework for selecting the right research design based on existing evidence for a Practice of Interest (POI)</p>
+    <svg id="poi-svg" viewBox="0 0 640 265" height="240"></svg>
+    <p class="modal-note">* In some cases it may be appropriate to proceed with a Hybrid Type I trial in the absence of effectiveness evidence — e.g., very strong efficacy, indirect evidence supportive of potential effectiveness in context of interest, and/or strong momentum supporting implementation in a health care context.</p>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script>
+/* ══════════════════════════════════════════════════
+   COLOURS
+══════════════════════════════════════════════════ */
 const COLORS = {
-  root:          { fill: "#F1EFE8", stroke: "#888780", text: "#2C2C2A", link: "#B4B2A9", label: "Root" },
-  observational: { fill: "#E1F5EE", stroke: "#1D9E75", text: "#085041", link: "#5DCAA5", label: "Observational studies" },
-  experimental:  { fill: "#EEEDFE", stroke: "#7F77DD", text: "#26215C", link: "#AFA9EC", label: "Experimental studies" },
-  randomization: { fill: "#E6F1FB", stroke: "#378ADD", text: "#042C53", link: "#85B7EB", label: "By randomization" },
-  objective:     { fill: "#FAECE7", stroke: "#D85A30", text: "#4A1B0C", link: "#F0997B", label: "By objective" },
-  phase:         { fill: "#FAEEDA", stroke: "#BA7517", text: "#412402", link: "#EF9F27", label: "By phase" },
-  dosefinding:   { fill: "#EAF3DE", stroke: "#639922", text: "#173404", link: "#97C459", label: "Dose-finding designs" },
-  adaptive:      { fill: "#FBEAF0", stroke: "#D4537E", text: "#4B1528", link: "#ED93B1", label: "Adaptive designs" },
-  pragmatic:     { fill: "#E1F5EE", stroke: "#0F6E56", text: "#04342C", link: "#1D9E75", label: "Pragmatic vs. explanatory" },
-  special:       { fill: "#FCEBEB", stroke: "#E24B4A", text: "#501313", link: "#F09595", label: "Special designs" }
+  root:          { fill:"#F1EFE8", stroke:"#888780", text:"#2C2C2A", link:"#B4B2A9", label:"Root" },
+  observational: { fill:"#E1F5EE", stroke:"#1D9E75", text:"#085041", link:"#5DCAA5", label:"Observational studies" },
+  experimental:  { fill:"#EEEDFE", stroke:"#7F77DD", text:"#26215C", link:"#AFA9EC", label:"Experimental studies" },
+  randomization: { fill:"#E6F1FB", stroke:"#378ADD", text:"#042C53", link:"#85B7EB", label:"By randomization" },
+  objective:     { fill:"#FAECE7", stroke:"#D85A30", text:"#4A1B0C", link:"#F0997B", label:"By objective" },
+  phase:         { fill:"#FAEEDA", stroke:"#BA7517", text:"#412402", link:"#EF9F27", label:"By phase" },
+  dosefinding:   { fill:"#EAF3DE", stroke:"#639922", text:"#173404", link:"#97C459", label:"Dose-finding designs" },
+  adaptive:      { fill:"#FBEAF0", stroke:"#D4537E", text:"#4B1528", link:"#ED93B1", label:"Adaptive designs" },
+  pragmatic:     { fill:"#E1F5EE", stroke:"#0F6E56", text:"#04342C", link:"#1D9E75", label:"Pragmatic vs. explanatory" },
+  special:       { fill:"#FCEBEB", stroke:"#E24B4A", text:"#501313", link:"#F09595", label:"Special designs" },
+  hybrid:        { fill:"#FDF0E6", stroke:"#E07B2A", text:"#4A1F05", link:"#F0A55C", label:"Hybrid trial types" }
 };
+
+/* ══════════════════════════════════════════════════
+   TOOLTIPS
+══════════════════════════════════════════════════ */
+const TIPS = {
+  "Clinical trial designs":                        "The complete taxonomy of study designs used in clinical and translational research.",
+  "Epidemiology study designs":                    "The complete taxonomy of study designs used in epidemiology and clinical research.",
+  "Observational studies":                         "Studies where the investigator observes subjects without intervening or allocating treatments.",
+  "Descriptive":                                   "Observational studies that characterise disease, exposures, or outcomes without seeking to explain causation.",
+  "Case report":                                   "Detailed description of a single patient's presentation, treatment, and outcome — useful for rare or novel phenomena.",
+  "Case series":                                   "A descriptive report of characteristics shared by a group of patients with a similar diagnosis or treatment, without a comparison group.",
+  "Cross-sectional (descriptive)":                 "Measures the prevalence of a condition or exposure at a single point in time without inferring causation.",
+  "Analytical":                                    "Observational studies that formally test hypotheses about associations between exposures and outcomes.",
+  "Cohort (prospective / retrospective)":          "Follows a defined group over time to assess outcomes. Prospective studies look forward; retrospective studies use existing records.",
+  "Case–control":                                  "Compares patients with a condition (cases) to those without (controls) to identify potential risk factors retrospectively.",
+  "Cross-sectional (analytic)":                    "Examines the statistical association between an exposure and an outcome measured at the same point in time.",
+  "Experimental studies (clinical trials)":        "Studies where an investigator deliberately applies an intervention and measures its effect — the foundation of evidence-based medicine.",
+  "By randomization":                              "Classification of trials by whether and how participants are randomly allocated to study arms.",
+  "Randomized controlled trial (RCT)":             "The gold-standard experimental design: participants are randomly assigned to treatment or control to reduce bias.",
+  "By allocation structure":                       "How treatment arms are structured and whether participants receive one or multiple interventions.",
+  "Parallel-group":                                "Each participant receives one treatment throughout; all groups run simultaneously. The most common RCT design.",
+  "Crossover":                                     "Participants receive each treatment sequentially in random order, serving as their own control — increases statistical power.",
+  "Factorial (2×2, 3×3, etc.)":                    "Tests two or more interventions simultaneously in all possible combinations within a single trial.",
+  "By unit of randomization":                      "Defines whether individuals or intact groups (clusters) are the unit that receives the randomised assignment.",
+  "Individually randomized":                       "Each participant is independently randomised — the standard approach for most clinical trials.",
+  "Cluster-randomized":                            "Intact groups (clinics, schools, villages) rather than individuals are randomised to study arms.",
+  "Parallel cluster trial":                        "Clusters simultaneously assigned to treatment or control for the full trial duration.",
+  "Stepped-wedge cluster":                         "Clusters sequentially cross over from control to intervention at randomly assigned time points — useful when withholding treatment is impractical.",
+  "Non-randomized / quasi-experimental":           "Lacks random allocation; uses design features or statistical adjustments to reduce confounding.",
+  "Controlled before–after":                       "Compares outcomes before and after an intervention, with a concurrent control group providing the counterfactual.",
+  "Interrupted time series":                       "Analyses serial outcome measurements before and after an intervention point to detect change.",
+  "Single-arm trial":                              "All participants receive the experimental intervention; outcomes compared to a pre-specified benchmark or historical data.",
+  "By objective":                                  "Classification of trials by the statistical question they are designed to answer.",
+  "Superiority":                                   "Tests whether a new treatment outperforms the comparator by a clinically meaningful margin.",
+  "Non-inferiority":                               "Tests whether a new treatment is not worse than the comparator by more than a pre-specified acceptable margin.",
+  "Equivalence":                                   "Tests whether two treatments produce effects within a defined margin in both directions — bidirectional non-inferiority.",
+  "By phase":                                      "Regulatory classification of clinical trials by their stage in the drug or device development pipeline.",
+  "Phase I — safety & dose-finding":               "First-in-human studies assessing safety, tolerability, pharmacokinetics, and maximum tolerated dose. Typically small (n = 10–50).",
+  "Phase II — preliminary efficacy":               "Assesses initial efficacy signals, refines dosing, and characterises safety in the target patient population.",
+  "Phase III — confirmatory":                      "Large-scale, definitive trials providing evidence of efficacy and safety to support regulatory approval.",
+  "Phase IV — post-marketing":                     "Surveillance studies conducted after approval to monitor long-term real-world safety, effectiveness, and rare adverse events.",
+  "Dose-finding designs":                          "Specialised designs for estimating the optimal dose or maximum tolerated dose, particularly in early-phase oncology trials.",
+  "Rule-based":                                    "Dose escalation follows pre-specified algorithmic rules, without statistical modelling of the dose-toxicity relationship.",
+  "3+3":                                           "Classic rule-based design enrolling 3-patient cohorts; escalates if ≤1/6 patients experience dose-limiting toxicity. Simple but inefficient.",
+  "Accelerated titration":                         "Rapid single-patient dose escalation until a specified toxicity level is observed; reduces patient exposure to sub-therapeutic doses.",
+  "Model-based / model-assisted":                  "Uses statistical models to guide dose escalation decisions — more efficient and accurate than rule-based methods.",
+  "CRM (continual reassessment method)":           "A Bayesian adaptive design that continuously updates the dose-toxicity curve estimate as each patient's outcome is observed.",
+  "mTPI / mTPI-2":                                 "Modified toxicity probability interval design using Bayesian posterior intervals to generate escalation/de-escalation decisions.",
+  "BOIN":                                          "Bayesian optimal interval design selecting doses based on observed DLT rates and pre-specified decision boundaries.",
+  "Bayesian optimal interval":                     "A family of Bayesian interval-based designs mathematically optimised to minimise the probability of wrong dose decisions.",
+  "Adaptive designs":                              "Trials with pre-specified rules to modify design elements based on accumulating interim data.",
+  "Group sequential (early stopping)":             "Pre-planned interim analyses allow the trial to stop early for overwhelming efficacy or demonstrated futility.",
+  "Sample size re-estimation":                     "Mid-trial adjustment of the target sample size based on observed nuisance parameters such as variance or event rate.",
+  "Response-adaptive randomization":               "Allocation probabilities shift in favour of better-performing arms as accumulating data reveal treatment differences.",
+  "Adaptive dose-finding":                         "Dose levels or cohort sizes are modified during the trial based on accumulating safety or efficacy data.",
+  "Drop-the-loser / pick-the-winner":              "Inferior treatment arms are dropped mid-trial and resources concentrated on better-performing arms.",
+  "Platform trials":                               "Multiple treatments evaluated simultaneously within a single perpetual master protocol — arms can enter and exit over time.",
+  "Basket trials":                                 "A single targeted treatment tested across multiple disease subtypes sharing a common molecular biomarker.",
+  "Umbrella trials":                               "Multiple targeted treatments tested within a single disease, with patients matched to treatments by biomarker subtype.",
+  "Pragmatic vs. explanatory":                     "A spectrum describing how closely a trial mirrors routine clinical practice (pragmatic) versus ideal controlled conditions (explanatory).",
+  "Pragmatic (real-world effectiveness)":          "Broad eligibility, routine care settings, and patient-centred outcomes — assesses real-world effectiveness.",
+  "Explanatory (ideal conditions)":               "Narrow eligibility, tightly controlled conditions, and surrogate endpoints — maximises internal validity.",
+  "Special designs":                               "Designs addressing specific methodological, contextual, or implementation challenges.",
+  "N-of-1 trials":                                 "A randomized crossover trial in a single patient to determine that individual's optimal treatment — especially useful for chronic conditions.",
+  "Hybrid effectiveness–implementation trials":    "Simultaneously evaluates clinical effectiveness AND strategies for implementing an intervention in practice. Click to view the POI decision framework.",
+  "Hybrid Type I (effectiveness primary; collects preliminary implementation data)":          "Primarily evaluates clinical effectiveness, with secondary observation of implementation factors. Most evidence favours the intervention; implementation data are exploratory.",
+  "Hybrid Type II (tests effectiveness and implementation strategies equally)":               "Co-equal emphasis on testing both clinical effectiveness AND the implementation strategy. Used when evidence gaps exist for both questions simultaneously.",
+  "Hybrid Type III (implementation strategy primary; observes effectiveness secondarily)":    "Primarily evaluates the implementation strategy, with secondary measurement of clinical outcomes. Most evidence already supports effectiveness.",
+  "Non-inferiority cluster trials":                "A cluster-randomized trial designed to show a new intervention is not worse than standard care by a defined margin.",
+  "Registry-based randomized trials":              "Uses existing clinical registry infrastructure for participant identification, randomization, data capture, and follow-up — highly efficient.",
+  "Decentralized / virtual trials":                "Conducted remotely via digital tools, wearables, and telemedicine — reduces or eliminates the need for in-person site visits."
+};
+
+/* ══════════════════════════════════════════════════
+   DATA TREE  (user's working structure, extended)
+══════════════════════════════════════════════════ */
 const DATA = {
-  name: "Epidemiology study designs", colorKey: "root", defaultOpen: true,
-  children: [
+  name:"Clinical trial designs", colorKey:"root", defaultOpen:true,
+  children:[
     {
-      name: "Observational studies", colorKey: "observational", defaultOpen: true,
-      children: [
+      name:"Observational studies", colorKey:"observational", defaultOpen:true,
+      children:[
         {
-          name: "Descriptive", colorKey: "observational", defaultOpen: true,
-          children: [
-            { name: "Case report", colorKey: "observational" },
-            { name: "Case series", colorKey: "observational" },
-            { name: "Cross-sectional (descriptive)", colorKey: "observational" }
+          name:"Descriptive", colorKey:"observational", defaultOpen:true,
+          children:[
+            { name:"Case report",                   colorKey:"observational" },
+            { name:"Case series",                   colorKey:"observational" },
+            { name:"Cross-sectional (descriptive)", colorKey:"observational" }
           ]
         },
         {
-          name: "Analytical", colorKey: "observational", defaultOpen: true,
-          children: [
-            { name: "Cohort (prospective / retrospective)", colorKey: "observational" },
-            { name: "Case–control", colorKey: "observational" },
-            { name: "Cross-sectional (analytic)", colorKey: "observational" }
+          name:"Analytical", colorKey:"observational", defaultOpen:true,
+          children:[
+            { name:"Cohort (prospective / retrospective)", colorKey:"observational" },
+            { name:"Case–control",                        colorKey:"observational" },
+            { name:"Cross-sectional (analytic)",          colorKey:"observational" }
           ]
         }
       ]
     },
-
     {
-      name: "Experimental studies (clinical trials)", colorKey: "experimental", defaultOpen: true,
-      children: [
-
-// ---------------------------
-// FIXED SECTION
-// ---------------------------
-{
-  name: "By randomization",
-  colorKey: "randomization",
-  defaultOpen: true,
-  children: [
-    {
-      name: "Randomized controlled trial (RCT)",
-      colorKey: "randomization",
-      defaultOpen: true,
-      children: [
-
-        // Allocation structure
+      name:"Experimental studies (clinical trials)", colorKey:"experimental", defaultOpen:true,
+      children:[
+        /* ── By randomization ── */
         {
-          name: "By allocation structure",
-          colorKey: "randomization",
-          defaultOpen: true,
-          children: [
-            { name: "Parallel-group", colorKey: "randomization" },
-            { name: "Crossover", colorKey: "randomization" },
-            { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" }
-          ]
-        },
-
-        // Unit of randomisation
-        {
-          name: "By unit of randomization",
-          colorKey: "randomization",
-          defaultOpen: true,
-          children: [
-            { name: "Individually randomized", colorKey: "randomization" },
-
+          name:"By randomization", colorKey:"randomization", defaultOpen:true,
+          children:[
             {
-              name: "Cluster-randomized",
-              colorKey: "randomization",
-              children: [
-                { name: "Parallel cluster trial", colorKey: "randomization" },
-                { name: "Stepped-wedge cluster", colorKey: "randomization" }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-
-    // Non-randomized
-    {
-      name: "Non-randomized / quasi-experimental",
-      colorKey: "randomization",
-      defaultOpen: false,
-      children: [
-        { name: "Controlled before–after", colorKey: "randomization" },
-        { name: "Interrupted time series", colorKey: "randomization" },
-        { name: "Single-arm trial", colorKey: "randomization" }
-      ]
-    }
-  ]
-},
-// ---------------------------
-// END FIXED SECTION
-// ---------------------------
-
-        {
-          name: "By objective", colorKey: "objective", defaultOpen: false,
-          children: [
-            { name: "Superiority", colorKey: "objective" },
-            { name: "Non-inferiority", colorKey: "objective" },
-            { name: "Equivalence", colorKey: "objective" }
-          ]
-        },
-
-        {
-          name: "By phase", colorKey: "phase", defaultOpen: false,
-          children: [
-            { name: "Phase I — safety & dose-finding", colorKey: "phase" },
-            { name: "Phase II — preliminary efficacy", colorKey: "phase" },
-            { name: "Phase III — confirmatory", colorKey: "phase" },
-            { name: "Phase IV — post-marketing", colorKey: "phase" }
-          ]
-        },
-
-        {
-          name: "Dose-finding designs", colorKey: "dosefinding", defaultOpen: false,
-          children: [
-            {
-              name: "Rule-based", colorKey: "dosefinding",
-              children: [
-                { name: "3+3", colorKey: "dosefinding" },
-                { name: "Accelerated titration", colorKey: "dosefinding" }
+              name:"Randomized controlled trial (RCT)", colorKey:"randomization", defaultOpen:true,
+              children:[
+                {
+                  name:"By allocation structure", colorKey:"randomization", defaultOpen:true,
+                  children:[
+                    { name:"Parallel-group",             colorKey:"randomization" },
+                    { name:"Crossover",                  colorKey:"randomization" },
+                    { name:"Factorial (2×2, 3×3, etc.)", colorKey:"randomization" }
+                  ]
+                },
+                {
+                  name:"By unit of randomization", colorKey:"randomization", defaultOpen:true,
+                  children:[
+                    { name:"Individually randomized", colorKey:"randomization" },
+                    {
+                      name:"Cluster-randomized", colorKey:"randomization", defaultOpen:false,
+                      children:[
+                        { name:"Parallel cluster trial",   colorKey:"randomization" },
+                        { name:"Stepped-wedge cluster",    colorKey:"randomization" }
+                      ]
+                    }
+                  ]
+                }
               ]
             },
             {
-              name: "Model-based / model-assisted", colorKey: "dosefinding",
-              children: [
-                { name: "CRM (continual reassessment method)", colorKey: "dosefinding" },
-                { name: "mTPI / mTPI-2", colorKey: "dosefinding" },
-                { name: "BOIN", colorKey: "dosefinding" },
-                { name: "Bayesian optimal interval", colorKey: "dosefinding" }
+              name:"Non-randomized / quasi-experimental", colorKey:"randomization", defaultOpen:false,
+              children:[
+                { name:"Controlled before–after",  colorKey:"randomization" },
+                { name:"Interrupted time series",  colorKey:"randomization" },
+                { name:"Single-arm trial",         colorKey:"randomization" }
               ]
             }
           ]
         },
-
+        /* ── By objective ── */
         {
-          name: "Adaptive designs", colorKey: "adaptive", defaultOpen: false,
-          children: [
-            { name: "Group sequential (early stopping)", colorKey: "adaptive" },
-            { name: "Sample size re-estimation", colorKey: "adaptive" },
-            { name: "Response-adaptive randomization", colorKey: "adaptive" },
-            { name: "Adaptive dose-finding", colorKey: "adaptive" },
-            { name: "Drop-the-loser / pick-the-winner", colorKey: "adaptive" },
-            { name: "Platform trials", colorKey: "adaptive" },
-            { name: "Basket trials", colorKey: "adaptive" },
-            { name: "Umbrella trials", colorKey: "adaptive" }
+          name:"By objective", colorKey:"objective", defaultOpen:false,
+          children:[
+            { name:"Superiority",     colorKey:"objective" },
+            { name:"Non-inferiority", colorKey:"objective" },
+            { name:"Equivalence",     colorKey:"objective" }
           ]
         },
-
+        /* ── By phase ── */
         {
-          name: "Pragmatic vs. explanatory", colorKey: "pragmatic", defaultOpen: false,
-          children: [
-            { name: "Pragmatic (real-world effectiveness)", colorKey: "pragmatic" },
-            { name: "Explanatory (ideal conditions)", colorKey: "pragmatic" }
+          name:"By phase", colorKey:"phase", defaultOpen:false,
+          children:[
+            { name:"Phase I — safety & dose-finding",  colorKey:"phase" },
+            { name:"Phase II — preliminary efficacy",  colorKey:"phase" },
+            { name:"Phase III — confirmatory",         colorKey:"phase" },
+            { name:"Phase IV — post-marketing",        colorKey:"phase" }
           ]
         },
-
+        /* ── Dose-finding ── */
         {
-           name: "Special designs", colorKey: "special", defaultOpen: false,
-  children: [
-    { name: "N-of-1 trials", colorKey: "special" },
-
-    {
-      name: "Hybrid effectiveness–implementation trials",
-      colorKey: "special",
-      defaultOpen: false,
-      children: [
-        { 
-          name: "Hybrid Type I (effectiveness primary; collects preliminary implementation data)", 
-          colorKey: "special" 
+          name:"Dose-finding designs", colorKey:"dosefinding", defaultOpen:false,
+          children:[
+            {
+              name:"Rule-based", colorKey:"dosefinding", defaultOpen:false,
+              children:[
+                { name:"3+3",                   colorKey:"dosefinding" },
+                { name:"Accelerated titration", colorKey:"dosefinding" }
+              ]
+            },
+            {
+              name:"Model-based / model-assisted", colorKey:"dosefinding", defaultOpen:false,
+              children:[
+                { name:"CRM (continual reassessment method)", colorKey:"dosefinding" },
+                { name:"mTPI / mTPI-2",                      colorKey:"dosefinding" },
+                { name:"BOIN",                               colorKey:"dosefinding" },
+                { name:"Bayesian optimal interval",          colorKey:"dosefinding" }
+              ]
+            }
+          ]
         },
-        { 
-          name: "Hybrid Type II (tests effectiveness and implementation strategies equally)", 
-          colorKey: "special" 
+        /* ── Adaptive ── */
+        {
+          name:"Adaptive designs", colorKey:"adaptive", defaultOpen:false,
+          children:[
+            { name:"Group sequential (early stopping)",  colorKey:"adaptive" },
+            { name:"Sample size re-estimation",          colorKey:"adaptive" },
+            { name:"Response-adaptive randomization",    colorKey:"adaptive" },
+            { name:"Adaptive dose-finding",              colorKey:"adaptive" },
+            { name:"Drop-the-loser / pick-the-winner",   colorKey:"adaptive" },
+            { name:"Platform trials",                    colorKey:"adaptive" },
+            { name:"Basket trials",                      colorKey:"adaptive" },
+            { name:"Umbrella trials",                    colorKey:"adaptive" }
+          ]
         },
-        { 
-          name: "Hybrid Type III (implementation strategy primary; observes effectiveness secondarily)", 
-          colorKey: "special" 
-        }
-      ]
-    },
-
-    { name: "Non-inferiority cluster trials", colorKey: "special" },
-    { name: "Registry-based randomized trials", colorKey: "special" },
-    { name: "Decentralized / virtual trials", colorKey: "special" }
+        /* ── Pragmatic ── */
+        {
+          name:"Pragmatic vs. explanatory", colorKey:"pragmatic", defaultOpen:false,
+          children:[
+            { name:"Pragmatic (real-world effectiveness)", colorKey:"pragmatic" },
+            { name:"Explanatory (ideal conditions)",       colorKey:"pragmatic" }
+          ]
+        },
+        /* ── Special designs ── */
+        {
+          name:"Special designs", colorKey:"special", defaultOpen:false,
+          children:[
+            { name:"N-of-1 trials", colorKey:"special" },
+            {
+              name:"Hybrid effectiveness–implementation trials",
+              colorKey:"special", defaultOpen:false, modal:"poi",
+              children:[
+                { name:"Hybrid Type I (effectiveness primary; collects preliminary implementation data)",         colorKey:"hybrid" },
+                { name:"Hybrid Type II (tests effectiveness and implementation strategies equally)",              colorKey:"hybrid" },
+                { name:"Hybrid Type III (implementation strategy primary; observes effectiveness secondarily)",   colorKey:"hybrid" }
+              ]
+            },
+            { name:"Non-inferiority cluster trials",   colorKey:"special" },
+            { name:"Registry-based randomized trials", colorKey:"special" },
+            { name:"Decentralized / virtual trials",   colorKey:"special" }
           ]
         }
       ]
@@ -386,263 +558,561 @@ const DATA = {
   ]
 };
 
-
-const NODE_H = 28;
-const NODE_PAD_X = 10;
-const NODE_PAD_Y = 6;
-const H_GAP = 220;
-const V_GAP = 36;
-const MARGIN = { top: 20, right: 60, bottom: 20, left: 30 };
+/* ══════════════════════════════════════════════════
+   LAYOUT CONSTANTS
+══════════════════════════════════════════════════ */
+const NODE_H  = 28;
+const PAD_X   = 10;
+const H_GAP   = 235;
+const V_GAP   = 36;
+const MARGIN  = { top:20, right:60, bottom:20, left:30 };
+const MM_W    = 190;
+const MM_H    = 120;
 
 let root, svgEl, g, zoom, treeLayout;
-let allNodes = [];
-let searchActive = false;
+let allNodes  = [];
+let searchQ   = '';
+let isDark    = false;
 
-function getNodeWidth(name) {
-  return Math.max(100, name.length * 6.8 + NODE_PAD_X * 2 + 16);
+/* ══════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════ */
+function nodeW(name) {
+  return Math.max(90, name.length * 6.55 + PAD_X * 2 + 20);
 }
 
+function countDesc(d) {
+  const kids = d.children || d._children;
+  if (!kids || !kids.length) return 0;
+  return kids.reduce((s, c) => s + 1 + countDesc(c), 0);
+}
+
+/* ══════════════════════════════════════════════════
+   LEGEND
+══════════════════════════════════════════════════ */
 function setupLegend() {
-  const legend = document.getElementById('legend');
-  Object.entries(COLORS).filter(([k]) => k !== 'root').forEach(([key, c]) => {
-    const item = document.createElement('div');
-    item.className = 'legend-item';
-    item.innerHTML = `<div class="legend-dot" style="background:${c.fill};border:1px solid ${c.stroke}"></div><span>${c.label}</span>`;
-    legend.appendChild(item);
+  const el = document.getElementById('legend');
+  Object.entries(COLORS).filter(([k]) => k !== 'root').forEach(([, c]) => {
+    el.insertAdjacentHTML('beforeend',
+      `<div class="legend-item">
+         <div class="legend-dot" style="background:${c.fill};border:1px solid ${c.stroke}"></div>
+         <span>${c.label}</span>
+       </div>`);
   });
 }
 
+/* ══════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════ */
 function initTree() {
   root = d3.hierarchy(DATA);
-
   root.each(d => {
     if (d.data.defaultOpen === false && d.children) {
-      d._children = d.children;
-      d.children = null;
+      d._children = d.children; d.children = null;
     }
   });
 
   treeLayout = d3.tree().nodeSize([V_GAP, H_GAP]);
 
-  const container = document.getElementById('tree-container');
-  const W = Math.max(container.clientWidth - 48, 900);
-  const H = Math.max(container.clientHeight - 48, 600);
+  const cont = document.getElementById('tree-container');
+  const W = Math.max(cont.clientWidth - 40, 900);
+  const H = Math.max(cont.clientHeight - 40, 600);
 
-  svgEl = d3.select('#tree-svg')
-    .attr('width', W)
-    .attr('height', H);
+  svgEl = d3.select('#tree-svg').attr('width', W).attr('height', H);
 
   zoom = d3.zoom()
-    .scaleExtent([0.3, 3])
-    .on('zoom', (e) => g.attr('transform', e.transform));
+    .scaleExtent([0.15, 4])
+    .on('zoom', e => { g.attr('transform', e.transform); updateMMViewport(); });
 
   svgEl.call(zoom);
-
-  g = svgEl.append('g')
-    .attr('transform', `translate(${MARGIN.left + 20},${H / 2})`);
+  g = svgEl.append('g').attr('transform', `translate(${MARGIN.left + 20},${H / 2})`);
 
   update(root);
-
-  setTimeout(() => resetZoom(), 100);
+  setTimeout(resetZoom, 100);
+  buildMinimap();
+  buildPOI();
 }
 
+/* ══════════════════════════════════════════════════
+   UPDATE
+══════════════════════════════════════════════════ */
 function update(source) {
   treeLayout(root);
   allNodes = root.descendants();
   const links = root.links();
 
-  const maxDepth = d3.max(allNodes, d => d.depth);
-  const svgW = (maxDepth + 1) * H_GAP + 320 + MARGIN.left + MARGIN.right;
-  const extent = d3.extent(allNodes, d => d.x);
-  const svgH = (extent[1] - extent[0]) + V_GAP * 4 + MARGIN.top + MARGIN.bottom;
+  const maxD = d3.max(allNodes, d => d.depth);
+  const svgW = (maxD + 1) * H_GAP + 380 + MARGIN.left + MARGIN.right;
+  const ext  = d3.extent(allNodes, d => d.x);
+  const svgH = Math.max(ext[1] - ext[0] + V_GAP * 4 + MARGIN.top + MARGIN.bottom, 500);
 
-  svgEl.attr('width', Math.max(svgW, 900)).attr('height', Math.max(svgH, 500));
+  svgEl.attr('width', Math.max(svgW, 900)).attr('height', svgH);
 
-  const t = d3.transition().duration(300).ease(d3.easeCubicInOut);
+  const t = d3.transition().duration(280).ease(d3.easeCubicInOut);
 
-  const link = g.selectAll('.link').data(links, d => d.target.data.name + d.source.data.name);
+  /* links */
+  const link = g.selectAll('.link').data(links, d => d.target.data.name + '|' + d.source.data.name);
 
   link.enter().insert('path', '.node')
     .attr('class', 'link')
     .attr('stroke', d => COLORS[d.target.data.colorKey]?.link || '#ccc')
     .attr('stroke-opacity', 0)
-    .attr('d', () => {
-      const o = { x: source.x0 ?? source.x, y: source.y0 ?? source.y };
-      return diagonal(o, o, 0);
-    })
+    .attr('d', () => { const o = { x: source.x0 ?? source.x, y: source.y0 ?? source.y }; return diag(o, o, 0); })
     .merge(link)
     .transition(t)
-    .attr('stroke-opacity', 0.6)
+    .attr('stroke-opacity', 0.58)
     .attr('stroke', d => COLORS[d.target.data.colorKey]?.link || '#ccc')
-    .attr('d', d => diagonal(d.source, d.target, getNodeWidth(d.source.data.name)));
+    .attr('d', d => diag(d.source, d.target, nodeW(d.source.data.name)));
 
   link.exit().transition(t)
     .attr('opacity', 0)
-    .attr('d', () => {
-      const o = { x: source.x, y: source.y };
-      return diagonal(o, o, 0);
-    })
+    .attr('d', () => { const o = { x: source.x, y: source.y }; return diag(o, o, 0); })
     .remove();
 
+  /* nodes */
   const node = g.selectAll('.node').data(allNodes, d => d.data.name);
 
-  const nodeEnter = node.enter().append('g')
+  const enter = node.enter().append('g')
     .attr('class', 'node')
     .attr('transform', d => `translate(${source.y0 ?? source.y},${source.x0 ?? source.x})`)
     .attr('opacity', 0)
-    .on('click', (event, d) => {
-      if (d.children) {
-        d._children = d.children;
-        d.children = null;
-      } else if (d._children) {
-        d.children = d._children;
-        d._children = null;
-      }
-      update(d);
-    });
+    .on('click',     (e, d) => onNodeClick(d))
+    .on('mouseover', (e, d) => onNodeOver(e, d))
+    .on('mousemove', (e)    => moveTip(e))
+    .on('mouseout',  ()     => onNodeOut());
 
-  nodeEnter.append('rect')
-    .attr('height', NODE_H)
-    .attr('y', -NODE_H / 2)
-    .attr('rx', 5)
-    .attr('width', d => getNodeWidth(d.data.name))
-    .attr('fill', d => COLORS[d.data.colorKey]?.fill || '#F1EFE8')
+  /* background rect */
+  enter.append('rect')
+    .attr('class', 'node-bg')
+    .attr('height', NODE_H).attr('y', -NODE_H / 2).attr('rx', 5)
+    .attr('width',  d => nodeW(d.data.name))
+    .attr('fill',   d => COLORS[d.data.colorKey]?.fill   || '#F1EFE8')
     .attr('stroke', d => COLORS[d.data.colorKey]?.stroke || '#888');
 
-  nodeEnter.append('text')
+  /* label */
+  enter.append('text')
     .attr('class', 'node-label')
-    .attr('x', NODE_PAD_X)
-    .attr('y', 0)
-    .attr('fill', d => COLORS[d.data.colorKey]?.text || '#1a1a18')
-    .attr('font-weight', d => (d.depth <= 1) ? 600 : (d.depth === 2 ? 500 : 400))
+    .attr('x', PAD_X).attr('y', 0)
+    .attr('fill',        d => COLORS[d.data.colorKey]?.text || '#1a1a18')
+    .attr('font-weight', d => d.depth <= 1 ? 600 : d.depth === 2 ? 500 : 400)
     .text(d => d.data.name);
 
-  nodeEnter.append('text')
-    .attr('class', 'expand-indicator')
-    .attr('x', d => getNodeWidth(d.data.name) - 12)
-    .attr('y', 0)
-    .attr('fill', d => COLORS[d.data.colorKey]?.stroke || '#888')
-    .attr('text-anchor', 'middle')
-    .text(d => (d._children ? '▸' : (d.children ? '▾' : '')));
+  /* expand arrow */
+  enter.append('text')
+    .attr('class', 'expander')
+    .attr('y', 0).attr('text-anchor', 'middle')
+    .attr('font-size', 9).attr('font-family', 'monospace')
+    .attr('dominant-baseline', 'central').attr('pointer-events', 'none');
 
-  const nodeUpdate = nodeEnter.merge(node);
+  /* modal icon (📋 on Hybrid trials) */
+  enter.append('text')
+    .attr('class', 'modal-icon')
+    .attr('y', 0).attr('font-size', 10)
+    .attr('dominant-baseline', 'central').attr('pointer-events', 'none');
 
-  nodeUpdate.transition(t)
+  /* badge background */
+  enter.append('rect').attr('class', 'badge-bg')
+    .attr('height', 12).attr('rx', 6)
+    .attr('y', -NODE_H / 2 - 11).attr('pointer-events', 'none');
+
+  /* badge text */
+  enter.append('text').attr('class', 'badge-txt')
+    .attr('font-size', 9).attr('font-weight', 600)
+    .attr('fill', '#fff').attr('text-anchor', 'middle')
+    .attr('y', -NODE_H / 2 - 4).attr('pointer-events', 'none');
+
+  const merged = enter.merge(node);
+
+  merged.transition(t)
     .attr('transform', d => `translate(${d.y},${d.x})`)
     .attr('opacity', 1);
 
-  nodeUpdate.select('rect')
-    .attr('width', d => getNodeWidth(d.data.name))
-    .attr('fill', d => COLORS[d.data.colorKey]?.fill || '#F1EFE8')
+  merged.select('.node-bg')
+    .attr('width',  d => nodeW(d.data.name))
+    .attr('fill',   d => COLORS[d.data.colorKey]?.fill   || '#F1EFE8')
     .attr('stroke', d => COLORS[d.data.colorKey]?.stroke || '#888');
 
-  nodeUpdate.select('.expand-indicator')
-    .attr('x', d => getNodeWidth(d.data.name) - 12)
-    .text(d => (d._children ? '▸' : (d.children ? '▾' : '')));
+  merged.select('.node-label')
+    .attr('fill',        d => COLORS[d.data.colorKey]?.text || '#1a1a18')
+    .attr('font-weight', d => d.depth <= 1 ? 600 : d.depth === 2 ? 500 : 400);
 
-  nodeUpdate.select('.node-label')
-    .attr('font-weight', d => (d.depth <= 1) ? 600 : (d.depth === 2 ? 500 : 400));
+  merged.select('.expander')
+    .attr('x',    d => nodeW(d.data.name) - 10)
+    .attr('fill', d => COLORS[d.data.colorKey]?.stroke || '#888')
+    .text(d => d._children ? '▸' : d.children ? '▾' : '');
 
-  node.exit().transition(t)
-    .attr('transform', d => `translate(${source.y},${source.x})`)
-    .attr('opacity', 0)
-    .remove();
+  merged.select('.modal-icon')
+    .attr('x',    d => nodeW(d.data.name) - (d.data.modal ? 22 : 10))
+    .attr('fill', d => COLORS[d.data.colorKey]?.stroke || '#888')
+    .text(d => d.data.modal ? '📋' : '');
 
-  root.each(d => {
-    d.x0 = d.x;
-    d.y0 = d.y;
+  /* count badges */
+  merged.each(function (d) {
+    const sel = d3.select(this);
+    const collapsed = !d.children && !!d._children;
+    const n = collapsed ? countDesc(d) : 0;
+    if (n > 0) {
+      const lbl = '+' + n;
+      const bw  = lbl.length * 6 + 10;
+      const bx  = nodeW(d.data.name) / 2 - bw / 2;
+      sel.select('.badge-bg').attr('x', bx).attr('width', bw)
+        .attr('fill', COLORS[d.data.colorKey]?.stroke || '#888').attr('opacity', 1);
+      sel.select('.badge-txt').attr('x', bx + bw / 2).attr('opacity', 1).text(lbl);
+    } else {
+      sel.select('.badge-bg').attr('opacity', 0);
+      sel.select('.badge-txt').attr('opacity', 0).text('');
+    }
   });
 
-  if (searchActive) applySearch(document.getElementById('search').value);
+  node.exit().transition(t)
+    .attr('transform', () => `translate(${source.y},${source.x})`)
+    .attr('opacity', 0).remove();
+
+  root.each(d => { d.x0 = d.x; d.y0 = d.y; });
+
+  if (searchQ) applySearch(searchQ);
+  updateMM();
 }
 
-function diagonal(s, d, sourceWidth) {
-  const sx = s.y + sourceWidth;
-  const sy = s.x;
-  const dx = d.y;
-  const dy = d.x;
-  const mx = (sx + dx) / 2;
+function diag(s, d, sw) {
+  const sx = s.y + sw, sy = s.x, dx = d.y, dy = d.x, mx = (sx + dx) / 2;
   return `M${sx},${sy} C${mx},${sy} ${mx},${dy} ${dx},${dy}`;
 }
 
-function expandAll() {
-  root.each(d => {
-    if (d._children) {
-      d.children = d._children;
-      d._children = null;
-    }
+/* ══════════════════════════════════════════════════
+   CLICK
+══════════════════════════════════════════════════ */
+function onNodeClick(d) {
+  if (d.children)        { d._children = d.children; d.children = null; }
+  else if (d._children) { d.children = d._children; d._children = null; }
+  update(d);
+  if (d.data.modal === 'poi') openModal();
+}
+
+/* ══════════════════════════════════════════════════
+   HOVER  (tooltip + breadcrumb + path highlight)
+══════════════════════════════════════════════════ */
+function onNodeOver(event, d) {
+  /* breadcrumb */
+  const ancs = d.ancestors().reverse();
+  document.getElementById('breadcrumb').innerHTML =
+    ancs.map((a, i) => {
+      const cls = i === ancs.length - 1 ? 'bc-leaf' : 'bc-item';
+      return `<span class="${cls}">${a.data.name}</span>`;
+    }).join('<span class="bc-sep"> › </span>');
+
+  /* path highlight */
+  const ancSet  = new Set(d.ancestors().map(a => a.data.name));
+  const descSet = new Set();
+  (function addDesc(n) {
+    (n.children || n._children || []).forEach(c => { descSet.add(c.data.name); addDesc(c); });
+  })(d);
+
+  g.selectAll('.node').each(function (nd) {
+    const mine = nd.data.name === d.data.name;
+    const rel  = ancSet.has(nd.data.name) || descSet.has(nd.data.name) || mine;
+    d3.select(this).classed('dimmed', !rel).classed('lit', rel && !mine);
   });
-  update(root);
-}
-
-function collapseAll() {
-  root.each(d => {
-    if (d.depth > 0 && d.children) {
-      d._children = d.children;
-      d.children = null;
-    }
+  g.selectAll('.link').each(function (ld) {
+    const vis = (ancSet.has(ld.source.data.name) || descSet.has(ld.source.data.name) || ld.source.data.name === d.data.name)
+             && (ancSet.has(ld.target.data.name) || descSet.has(ld.target.data.name) || ld.target.data.name === d.data.name);
+    d3.select(this).classed('dimmed', !vis);
   });
-  update(root);
+
+  /* tooltip */
+  const tip = TIPS[d.data.name];
+  if (tip) {
+    const el = document.getElementById('tooltip');
+    el.textContent = tip;
+    el.style.opacity = 1;
+    moveTip(event);
+  }
 }
 
-function resetZoom() {
-  const container = document.getElementById('tree-container');
-  const W = container.clientWidth;
-  const H = container.clientHeight;
-  svgEl.transition().duration(400).call(
-    zoom.transform,
-    d3.zoomIdentity.translate(MARGIN.left + 20, H / 2).scale(1)
-  );
+function moveTip(event) {
+  const el = document.getElementById('tooltip');
+  if (!+el.style.opacity) return;
+  let x = event.clientX + 15, y = event.clientY - 12;
+  if (x + el.offsetWidth  > window.innerWidth  - 8) x = event.clientX - el.offsetWidth  - 12;
+  if (y + el.offsetHeight > window.innerHeight - 8) y = event.clientY - el.offsetHeight + 12;
+  el.style.left = x + 'px'; el.style.top = y + 'px';
 }
 
-function handleSearch(query) {
-  searchActive = query.trim().length > 0;
-  applySearch(query);
+function onNodeOut() {
+  document.getElementById('breadcrumb').innerHTML = '<span class="bc-item">Clinical trial designs</span>';
+  document.getElementById('tooltip').style.opacity = 0;
+  g.selectAll('.node').classed('dimmed', false).classed('lit', false);
+  g.selectAll('.link').classed('dimmed', false);
 }
 
-function applySearch(query) {
-  const q = query.trim().toLowerCase();
-  if (!q) {
+/* ══════════════════════════════════════════════════
+   SEARCH
+══════════════════════════════════════════════════ */
+function handleSearch(q) { searchQ = q.trim(); applySearch(searchQ); }
+
+function applySearch(q) {
+  const lq = q.toLowerCase();
+  if (!lq) {
     g.selectAll('.node').classed('faded', false).classed('matched', false);
     g.selectAll('.link').classed('faded', false);
     return;
   }
-
-  const matchedNames = new Set();
-  const matchedAncestors = new Set();
-
+  const matched = new Set(), ancs = new Set();
   allNodes.forEach(d => {
-    if (d.data.name.toLowerCase().includes(q)) {
-      matchedNames.add(d.data.name);
-      let p = d.parent;
-      while (p) {
-        matchedAncestors.add(p.data.name);
-        p = p.parent;
-      }
+    if (d.data.name.toLowerCase().includes(lq)) {
+      matched.add(d.data.name);
+      d.ancestors().forEach(a => ancs.add(a.data.name));
     }
   });
-
-  g.selectAll('.node').each(function(d) {
-    const el = d3.select(this);
-    const isMatch = matchedNames.has(d.data.name);
-    const isAnc = matchedAncestors.has(d.data.name);
-    el.classed('faded', !isMatch && !isAnc);
-    el.classed('matched', isMatch);
+  g.selectAll('.node').each(function (d) {
+    const m = matched.has(d.data.name), a = ancs.has(d.data.name);
+    d3.select(this).classed('faded', !m && !a).classed('matched', m);
   });
-
-  g.selectAll('.link').each(function(d) {
-    const visible = matchedNames.has(d.target.data.name) || matchedAncestors.has(d.target.data.name);
-    d3.select(this).classed('faded', !visible);
+  g.selectAll('.link').each(function (d) {
+    d3.select(this).classed('faded', !matched.has(d.target.data.name) && !ancs.has(d.target.data.name));
   });
 }
 
+/* ══════════════════════════════════════════════════
+   DEPTH BUTTONS
+══════════════════════════════════════════════════ */
+function showDepth(n) {
+  root.each(d => {
+    if (d.depth < n) { if (!d.children && d._children) { d.children = d._children; d._children = null; } }
+    else             { if (d.children)                 { d._children = d.children; d.children  = null; } }
+  });
+  setActiveDepth(n);
+  update(root);
+}
+
+function expandAll() {
+  root.each(d => { if (d._children) { d.children = d._children; d._children = null; } });
+  setActiveDepth('all');
+  update(root);
+}
+
+function collapseAll() {
+  root.each(d => { if (d.depth > 0 && d.children) { d._children = d.children; d.children = null; } });
+  setActiveDepth(null);
+  update(root);
+}
+
+function setActiveDepth(v) {
+  ['d1','d2','d3','dall'].forEach(id => document.getElementById(id).classList.remove('active'));
+  const map = { 1:'d1', 2:'d2', 3:'d3', all:'dall' };
+  if (map[v]) document.getElementById(map[v]).classList.add('active');
+}
+
+/* ══════════════════════════════════════════════════
+   ZOOM / RESET
+══════════════════════════════════════════════════ */
+function resetZoom() {
+  const cont = document.getElementById('tree-container');
+  svgEl.transition().duration(400).call(
+    zoom.transform,
+    d3.zoomIdentity.translate(MARGIN.left + 20, cont.clientHeight / 2).scale(1)
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   DARK MODE
+══════════════════════════════════════════════════ */
+function toggleDark() {
+  isDark = !isDark;
+  document.body.classList.toggle('dark', isDark);
+  document.getElementById('darkBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
+}
+
+/* ══════════════════════════════════════════════════
+   MINIMAP
+══════════════════════════════════════════════════ */
+let mmSvg, mmMeta = {};
+
+function buildMinimap() {
+  mmSvg = d3.select('#minimap-svg');
+  mmSvg.on('click', e => {
+    if (!mmMeta.sc) return;
+    const [mx, my] = d3.pointer(e);
+    const gY = (mx - mmMeta.offY) / mmMeta.sc;
+    const gX = (my - mmMeta.offX) / mmMeta.sc;
+    const cont = document.getElementById('tree-container');
+    svgEl.transition().duration(320).call(
+      zoom.transform,
+      d3.zoomIdentity.translate(cont.clientWidth / 2 - gY, cont.clientHeight / 2 - gX).scale(1)
+    );
+  });
+}
+
+function updateMM() {
+  if (!mmSvg) return;
+  mmSvg.selectAll('*').remove();
+  const nodes = root.descendants();
+  const links = root.links();
+  if (!nodes.length) return;
+
+  const yExt = d3.extent(nodes, d => d.y);
+  const xExt = d3.extent(nodes, d => d.x);
+  const pad  = 7;
+  const scY  = (MM_W - pad * 2) / Math.max(yExt[1] - yExt[0], 1);
+  const scX  = (MM_H - pad * 2 - 8) / Math.max(xExt[1] - xExt[0], 1);
+  const sc   = Math.min(scY, scX, 0.26);
+  const offY = pad - yExt[0] * sc;
+  const offX = pad + 8 - xExt[0] * sc;
+
+  mmMeta = { sc, offY, offX };
+  const mx = d => d.y * sc + offY;
+  const my = d => d.x * sc + offX;
+
+  mmSvg.selectAll('.ml').data(links).join('path')
+    .attr('class', 'ml').attr('fill', 'none')
+    .attr('stroke', d => COLORS[d.target.data.colorKey]?.link || '#ccc')
+    .attr('stroke-opacity', 0.45).attr('stroke-width', 0.65)
+    .attr('d', d => {
+      const sx = mx(d.source), sy = my(d.source), dx = mx(d.target), dy = my(d.target), m = (sx + dx) / 2;
+      return `M${sx},${sy} C${m},${sy} ${m},${dy} ${dx},${dy}`;
+    });
+
+  mmSvg.selectAll('.mn').data(nodes).join('rect')
+    .attr('class', 'mn')
+    .attr('x', d => mx(d)).attr('y', d => my(d) - 2)
+    .attr('width', d => nodeW(d.data.name) * sc).attr('height', 4).attr('rx', 1)
+    .attr('fill',   d => COLORS[d.data.colorKey]?.fill   || '#eee')
+    .attr('stroke', d => COLORS[d.data.colorKey]?.stroke || '#aaa')
+    .attr('stroke-width', 0.3);
+
+  mmSvg.append('rect').attr('id', 'mm-vp')
+    .attr('rx', 2)
+    .attr('fill', 'rgba(79,110,247,.1)')
+    .attr('stroke', '#4f6ef7').attr('stroke-width', 1);
+
+  updateMMViewport();
+}
+
+function updateMMViewport() {
+  const vp = document.getElementById('mm-vp');
+  if (!vp || !mmMeta.sc) return;
+  const { sc, offY, offX } = mmMeta;
+  const tr   = d3.zoomTransform(svgEl.node());
+  const cont = document.getElementById('tree-container');
+  const cW   = cont.clientWidth, cH = cont.clientHeight;
+  const tx   = tr.x, ty = tr.y, k = tr.k;
+  const mmL  = (-tx / k) * sc + offY;
+  const mmR  = ((cW - tx) / k) * sc + offY;
+  const mmT  = (-ty / k) * sc + offX;
+  const mmB  = ((cH - ty) / k) * sc + offX;
+  d3.select('#mm-vp')
+    .attr('x',      Math.max(0, mmL))
+    .attr('y',      Math.max(0, mmT))
+    .attr('width',  Math.max(2, Math.min(MM_W, mmR) - Math.max(0, mmL)))
+    .attr('height', Math.max(2, Math.min(MM_H, mmB) - Math.max(0, mmT)));
+}
+
+/* ══════════════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════════════ */
+function openModal()  { document.getElementById('modal-overlay').classList.add('open'); }
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+/* ══════════════════════════════════════════════════
+   POI DIAGRAM (SVG inside modal)
+══════════════════════════════════════════════════ */
+function buildPOI() {
+  const svg = d3.select('#poi-svg');
+
+  const P = {
+    poi:   { x: 46,  y: 128 },
+    dec1:  { x: 190, y: 128 },
+    eff:   { x: 515, y: 46  },
+    dec2:  { x: 375, y: 128 },
+    efvs:  { x: 572, y: 86  },
+    hyb:   { x: 550, y: 158 },
+    mix:   { x: 300, y: 230 },
+    des:   { x: 428, y: 230 },
+    test:  { x: 556, y: 230 }
+  };
+
+  /* lines */
+  // Red: start → dec1
+  line(svg, P.poi.x + 58, P.poi.y, P.dec1.x, P.dec1.y, '#d93025', 4);
+  // Red: dec1 → No → eff
+  path(svg, `M${P.dec1.x},${P.dec1.y} L${P.dec1.x + 55},${P.dec1.y} L${P.dec1.x + 55},${P.eff.y} L${P.eff.x},${P.eff.y}`, '#d93025', 4);
+  // Yellow: dec1 → Yes → dec2
+  path(svg, `M${P.dec1.x},${P.dec1.y} L${P.dec1.x},${P.dec2.y} L${P.dec2.x},${P.dec2.y}`, '#c79010', 4);
+  // Yellow: dec2 → No → effectiveness
+  path(svg, `M${P.dec2.x},${P.dec2.y} L${P.dec2.x + 48},${P.dec2.y} L${P.dec2.x + 48},${P.efvs.y} L${P.efvs.x},${P.efvs.y}`, '#c79010', 4);
+  // Mid-green: dec2 → No/partial → hybrid
+  path(svg, `M${P.dec2.x},${P.dec2.y} L${P.dec2.x + 48},${P.dec2.y} L${P.dec2.x + 48},${P.hyb.y} L${P.hyb.x},${P.hyb.y}`, '#2a9055', 4);
+  // Dark green: dec2 → Yes → mixed + onwards
+  path(svg, `M${P.dec2.x},${P.dec2.y} L${P.dec2.x},${P.mix.y} L${P.mix.x},${P.mix.y}`, '#1b5e35', 4);
+  line(svg, P.mix.x, P.mix.y, P.test.x, P.test.y, '#1b5e35', 4);
+
+  /* decision circles */
+  dec(svg, P.dec1.x, P.dec1.y, '#d93025');
+  dec(svg, P.dec2.x, P.dec2.y, '#1b5e35');
+
+  /* terminal dots */
+  [P.poi, P.eff, P.efvs, P.hyb, P.mix, P.des, P.test].forEach(p => dot(svg, p.x, p.y, '#888'));
+  dot(svg, P.poi.x + 58, P.poi.y, '#d93025'); // entry dot
+
+  /* edge labels */
+  lbl(svg, P.dec1.x + 78, P.eff.y - 5,  'No',           'middle', '#b02020', true);
+  lbl(svg, P.dec1.x - 10, (P.dec1.y + P.dec2.y) / 2, 'Yes', 'end', '#a07000', true);
+  lbl(svg, P.dec2.x + 56, P.efvs.y - 4, 'No',           'middle', '#a07000', true);
+  lbl(svg, P.dec2.x + 52, (P.dec2.y + P.hyb.y) / 2 + 4, 'No / partial*', 'start', '#1e7040', true);
+  lbl(svg, P.dec2.x - 10, (P.dec2.y + P.mix.y) / 2, 'Yes', 'end', '#1b5e35', true);
+
+  /* node labels */
+  mlbl(svg, P.poi.x - 2, P.poi.y, ['Identify the', 'practice of', 'interest (POI)'], 'start', '#1a1a18', true, -30);
+  mlbl(svg, P.dec1.x, P.dec1.y, ['Has the POI', 'shown efficacy?'], 'middle', '#1a1a18', false, -20);
+  mlbl(svg, P.eff.x,  P.eff.y,  ['Efficacy Research', '(Design for implementation)'], 'middle', '#b02020', true, -20);
+  mlbl(svg, P.dec2.x, P.dec2.y, ['Has the POI shown', 'effectiveness?'], 'middle', '#1a1a18', false, -20);
+  mlbl(svg, P.efvs.x + 8, P.efvs.y, ['Effectiveness', 'research'], 'start', '#806000', true, -6);
+  mlbl(svg, P.hyb.x  + 8, P.hyb.y,  ['Hybrid effectiveness–', 'implementation trials'], 'start', '#1e7040', true, -7);
+  mlbl(svg, P.mix.x,  P.mix.y,  ['Mixed methods studies', 'to understand context'], 'middle', '#1b5e35', false, 14);
+  mlbl(svg, P.des.x,  P.des.y,  ['Designing', 'implementation', 'strategies'], 'middle', '#1b5e35', false, 14);
+  mlbl(svg, P.test.x, P.test.y, ['Testing', 'implementation', 'strategies'], 'middle', '#1b5e35', false, 14);
+}
+
+function line(svg, x1, y1, x2, y2, col, sw) {
+  svg.append('line').attr('x1',x1).attr('y1',y1).attr('x2',x2).attr('y2',y2)
+    .attr('stroke',col).attr('stroke-width',sw).attr('stroke-linecap','round');
+}
+function path(svg, d, col, sw) {
+  svg.append('path').attr('d',d).attr('fill','none')
+    .attr('stroke',col).attr('stroke-width',sw)
+    .attr('stroke-linecap','round').attr('stroke-linejoin','round');
+}
+function dot(svg, cx, cy, col) {
+  svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',6)
+    .attr('fill','#fff').attr('stroke',col).attr('stroke-width',2.5);
+  svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',2.8).attr('fill',col);
+}
+function dec(svg, cx, cy, col) {
+  svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',13)
+    .attr('fill','#fff').attr('stroke','#1a1a18').attr('stroke-width',3.5);
+  svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',5).attr('fill','#1a1a18');
+}
+function lbl(svg, x, y, txt, anchor, col, bold) {
+  svg.append('text').attr('x',x).attr('y',y).attr('text-anchor',anchor)
+    .attr('font-family','Segoe UI,system-ui,sans-serif').attr('font-size','10.5px')
+    .attr('font-weight', bold ? 600 : 400).attr('fill',col).text(txt);
+}
+function mlbl(svg, x, y, lines, anchor, col, bold, offsetY) {
+  lines.forEach((t, i) => lbl(svg, x, y + offsetY + i * 12, t, anchor, col, bold));
+}
+
+/* ══════════════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════════════ */
 setupLegend();
 initTree();
+
 window.addEventListener('resize', () => {
-  const container = document.getElementById('tree-container');
-  const W = Math.max(container.clientWidth - 48, 900);
-  const H = Math.max(container.clientHeight - 48, 600);
-  svgEl.attr('width', W).attr('height', H);
+  const cont = document.getElementById('tree-container');
+  svgEl.attr('width', Math.max(cont.clientWidth - 40, 900));
 });
 </script>
 </body>
