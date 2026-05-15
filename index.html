@@ -225,7 +225,7 @@ const DATA = {
       children: [
 
         // ---------------------------
-        // FIXED SECTION STARTS HERE
+        // FIXED SECTION
         // ---------------------------
         {
           name: "By randomization", colorKey: "randomization", defaultOpen: true,
@@ -234,36 +234,28 @@ const DATA = {
               name: "Randomized controlled trial (RCT)", colorKey: "randomization", defaultOpen: true,
               children: [
 
-                // FIRST DIMENSION: UNIT OF RANDOMISATION
+                // Allocation structure
                 {
                   name: "By allocation structure", colorKey: "randomization", defaultOpen: true,
                   children: [
-                        { name: "Parallel-group", colorKey: "randomization" },
-                        { name: "Crossover", colorKey: "randomization" },
-                        { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" },  
-                        { name: "Parallel-group", colorKey: "randomization" },
-                        { name: "Crossover", colorKey: "randomization" },
-                        { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" }
-          ]
-        }
-      ]
-    },
-                   {
+                    { name: "Parallel-group", colorKey: "randomization" },
+                    { name: "Crossover", colorKey: "randomization" },
+                    { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" }
+                  ]
+                },
+
+                // Unit of randomisation
+                {
                   name: "By unit of randomization", colorKey: "randomization", defaultOpen: true,
                   children: [
-                      name: "Individually randomized", colorKey: "randomization" },
-                      name: "Cluster-randomized", colorKey: "randomization" },
-                      ]
-                    },
-                    {
-                      ]
-                    }
+                    { name: "Individually randomized", colorKey: "randomization" },
+                    { name: "Cluster-randomized", colorKey: "randomization" }
                   ]
                 }
               ]
             },
 
-            // NON-RANDOMIZED
+            // Non-randomized
             {
               name: "Non-randomized / quasi-experimental", colorKey: "randomization", defaultOpen: false,
               children: [
@@ -275,7 +267,7 @@ const DATA = {
           ]
         },
         // ---------------------------
-        // FIXED SECTION ENDS HERE
+        // END FIXED SECTION
         // ---------------------------
 
         {
@@ -355,6 +347,7 @@ const DATA = {
     }
   ]
 };
+
 
 const NODE_H = 28;
 const NODE_PAD_X = 10;
