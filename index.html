@@ -236,22 +236,22 @@ const DATA = {
 
                 // FIRST DIMENSION: UNIT OF RANDOMISATION
                 {
-                  name: "By unit of randomization", colorKey: "randomization", defaultOpen: true,
+                  name: "By allocation structure", colorKey: "randomization", defaultOpen: true,
                   children: [
-                    {
-                      name: "Individually randomized", colorKey: "randomization",
-                      children: [
                         { name: "Parallel-group", colorKey: "randomization" },
                         { name: "Crossover", colorKey: "randomization" },
-                        { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" }
+                        { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" },  
+                        { name: "Parallel-group", colorKey: "randomization" },
+                        { name: "Crossover", colorKey: "randomization" },
+                        { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" [
+                         }
+                  name: "By unit of randomization", colorKey: "randomization", defaultOpen: true,
+                  children: [
+                      name: "Individually randomized", colorKey: "randomization",
+                      name: "Cluster-randomized", colorKey: "randomization"
                       ]
                     },
                     {
-                      name: "Cluster-randomized", colorKey: "randomization",
-                      children: [
-                        { name: "Parallel cluster trial", colorKey: "randomization" },
-                        { name: "Stepped-wedge cluster", colorKey: "randomization" },
-                        { name: "Cluster factorial", colorKey: "randomization" }
                       ]
                     }
                   ]
