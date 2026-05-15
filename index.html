@@ -155,18 +155,21 @@ svg { display: block; }
   pointer-events: none;
   dominant-baseline: central;
 }
-.node:hover > rect { filter: brightness(.88); }
-.link { fill: none; stroke-width: 1.3; }
+/* transitions on the group so opacity animates smoothly */
+.node { transition: opacity 0.18s ease; }
+.link { fill: none; stroke-width: 1.3; transition: opacity 0.18s ease, stroke-opacity 0.18s ease; }
 
 /* search states */
 .node.faded   { opacity: .12; }
 .link.faded   { opacity: .07; }
-.node.matched > rect { stroke-width: 2.5 !important; filter: brightness(.84); }
+.node.matched > rect { stroke-width: 2.5 !important; }
 
-/* hover-path states */
-.node.dimmed  { opacity: .1; }
-.link.dimmed  { opacity: .06; }
-.node.lit > rect { filter: brightness(.88); }
+/* hover-path states — gentle fade, no filter flash */
+.node.dimmed  { opacity: .18; }
+.link.dimmed  { opacity: .08; }
+
+/* hover highlight on the rect only — applied via JS, no CSS :hover conflict */
+.node-bg-highlight { filter: brightness(.88); }
 
 /* ── Tooltip ───────────────────────────────────────── */
 #tooltip {
@@ -280,7 +283,7 @@ svg { display: block; }
     </div>
   </div>
   <div class="breadcrumb" id="breadcrumb">
-    <span class="bc-item">Clinical trial designs</span>
+    <span class="bc-item">Study designs in epidemiology</span>
   </div>
 </div>
 
@@ -333,7 +336,7 @@ const COLORS = {
    TOOLTIPS
 ══════════════════════════════════════════════════ */
 const TIPS = {
-  "Clinical trial designs":                        "The complete taxonomy of study designs used in clinical and translational research.",
+  "Study designs in epidemiology":                "The complete taxonomy of study designs used in epidemiology and clinical research.",
   "Epidemiology study designs":                    "The complete taxonomy of study designs used in epidemiology and clinical research.",
   "Observational studies":                         "Studies where the investigator observes subjects without intervening or allocating treatments.",
   "Descriptive":                                   "Observational studies that characterise disease, exposures, or outcomes without seeking to explain causation.",
@@ -393,9 +396,9 @@ const TIPS = {
   "Special designs":                               "Designs addressing specific methodological, contextual, or implementation challenges.",
   "N-of-1 trials":                                 "A randomized crossover trial in a single patient to determine that individual's optimal treatment — especially useful for chronic conditions.",
   "Hybrid effectiveness–implementation trials":    "Simultaneously evaluates clinical effectiveness AND strategies for implementing an intervention in practice. Click to view the POI decision framework.",
-  "Hybrid Type I (effectiveness primary; collects preliminary implementation data)":          "Primarily evaluates clinical effectiveness, with secondary observation of implementation factors. Most evidence favours the intervention; implementation data are exploratory.",
-  "Hybrid Type II (tests effectiveness and implementation strategies equally)":               "Co-equal emphasis on testing both clinical effectiveness AND the implementation strategy. Used when evidence gaps exist for both questions simultaneously.",
-  "Hybrid Type III (implementation strategy primary; observes effectiveness secondarily)":    "Primarily evaluates the implementation strategy, with secondary measurement of clinical outcomes. Most evidence already supports effectiveness.",
+  "Hybrid Type I — effectiveness primary":     "Primarily evaluates clinical effectiveness, with secondary observation of implementation factors. Most evidence favours the intervention; implementation data are exploratory.",
+  "Hybrid Type II — dual focus":               "Co-equal emphasis on testing both clinical effectiveness AND the implementation strategy. Used when evidence gaps exist for both questions simultaneously.",
+  "Hybrid Type III — implementation primary":  "Primarily evaluates the implementation strategy, with secondary measurement of clinical outcomes. Most evidence already supports effectiveness.",
   "Non-inferiority cluster trials":                "A cluster-randomized trial designed to show a new intervention is not worse than standard care by a defined margin.",
   "Registry-based randomized trials":              "Uses existing clinical registry infrastructure for participant identification, randomization, data capture, and follow-up — highly efficient.",
   "Decentralized / virtual trials":                "Conducted remotely via digital tools, wearables, and telemedicine — reduces or eliminates the need for in-person site visits."
@@ -405,10 +408,10 @@ const TIPS = {
    DATA TREE  (user's working structure, extended)
 ══════════════════════════════════════════════════ */
 const DATA = {
-  name:"Clinical trial designs", colorKey:"root", defaultOpen:true,
+  name:"Study designs in epidemiology", colorKey:"root", defaultOpen:true,
   children:[
     {
-      name:"Observational studies", colorKey:"observational", defaultOpen:true,
+      name:"Observational studies", colorKey:"observational", defaultOpen:false,
       children:[
         {
           name:"Descriptive", colorKey:"observational", defaultOpen:true,
@@ -543,9 +546,9 @@ const DATA = {
               name:"Hybrid effectiveness–implementation trials",
               colorKey:"special", defaultOpen:false, modal:"poi",
               children:[
-                { name:"Hybrid Type I (effectiveness primary; collects preliminary implementation data)",         colorKey:"hybrid" },
-                { name:"Hybrid Type II (tests effectiveness and implementation strategies equally)",              colorKey:"hybrid" },
-                { name:"Hybrid Type III (implementation strategy primary; observes effectiveness secondarily)",   colorKey:"hybrid" }
+                { name:"Hybrid Type I — effectiveness primary",      colorKey:"hybrid" },
+                { name:"Hybrid Type II — dual focus",               colorKey:"hybrid" },
+                { name:"Hybrid Type III — implementation primary",  colorKey:"hybrid" }
               ]
             },
             { name:"Non-inferiority cluster trials",   colorKey:"special" },
@@ -563,8 +566,8 @@ const DATA = {
 ══════════════════════════════════════════════════ */
 const NODE_H  = 28;
 const PAD_X   = 10;
-const H_GAP   = 235;
-const V_GAP   = 36;
+const H_GAP   = 250;
+const V_GAP   = 46;
 const MARGIN  = { top:20, right:60, bottom:20, left:30 };
 const MM_W    = 190;
 const MM_H    = 120;
@@ -578,7 +581,7 @@ let isDark    = false;
    HELPERS
 ══════════════════════════════════════════════════ */
 function nodeW(name) {
-  return Math.max(90, name.length * 6.55 + PAD_X * 2 + 20);
+  return Math.min(340, Math.max(90, name.length * 6.55 + PAD_X * 2 + 20));
 }
 
 function countDesc(d) {
@@ -612,7 +615,9 @@ function initTree() {
     }
   });
 
-  treeLayout = d3.tree().nodeSize([V_GAP, H_GAP]);
+  treeLayout = d3.tree()
+    .nodeSize([V_GAP, H_GAP])
+    .separation((a, b) => a.parent === b.parent ? 1 : 2);
 
   const cont = document.getElementById('tree-container');
   const W = Math.max(cont.clientWidth - 40, 900);
@@ -710,16 +715,17 @@ function update(source) {
     .attr('y', 0).attr('font-size', 10)
     .attr('dominant-baseline', 'central').attr('pointer-events', 'none');
 
-  /* badge background */
+  /* badge background — sits on top-right corner of node */
   enter.append('rect').attr('class', 'badge-bg')
-    .attr('height', 12).attr('rx', 6)
-    .attr('y', -NODE_H / 2 - 11).attr('pointer-events', 'none');
+    .attr('height', 13).attr('rx', 6.5)
+    .attr('pointer-events', 'none');
 
   /* badge text */
   enter.append('text').attr('class', 'badge-txt')
-    .attr('font-size', 9).attr('font-weight', 600)
+    .attr('font-size', 8.5).attr('font-weight', 700)
     .attr('fill', '#fff').attr('text-anchor', 'middle')
-    .attr('y', -NODE_H / 2 - 4).attr('pointer-events', 'none');
+    .attr('dominant-baseline', 'central')
+    .attr('pointer-events', 'none');
 
   const merged = enter.merge(node);
 
@@ -753,11 +759,18 @@ function update(source) {
     const n = collapsed ? countDesc(d) : 0;
     if (n > 0) {
       const lbl = '+' + n;
-      const bw  = lbl.length * 6 + 10;
-      const bx  = nodeW(d.data.name) / 2 - bw / 2;
-      sel.select('.badge-bg').attr('x', bx).attr('width', bw)
-        .attr('fill', COLORS[d.data.colorKey]?.stroke || '#888').attr('opacity', 1);
-      sel.select('.badge-txt').attr('x', bx + bw / 2).attr('opacity', 1).text(lbl);
+      const bw  = lbl.length * 6 + 12;  // pill width
+      const bh  = 13;                    // pill height
+      const bx  = nodeW(d.data.name) - bw / 2;   // straddle right edge
+      const by  = -NODE_H / 2 - bh / 2;           // straddle top edge
+      sel.select('.badge-bg')
+        .attr('x', bx).attr('y', by).attr('width', bw)
+        .attr('fill', COLORS[d.data.colorKey]?.stroke || '#888')
+        .attr('opacity', 1);
+      sel.select('.badge-txt')
+        .attr('x', bx + bw / 2)
+        .attr('y', by + bh / 2)
+        .attr('opacity', 1).text(lbl);
     } else {
       sel.select('.badge-bg').attr('opacity', 0);
       sel.select('.badge-txt').attr('opacity', 0).text('');
@@ -792,8 +805,15 @@ function onNodeClick(d) {
 /* ══════════════════════════════════════════════════
    HOVER  (tooltip + breadcrumb + path highlight)
 ══════════════════════════════════════════════════ */
+let hoverTimer = null;
+let currentHovered = null;
+
 function onNodeOver(event, d) {
-  /* breadcrumb */
+  if (currentHovered === d) return; // already highlighted, don't re-trigger
+  currentHovered = d;
+  clearTimeout(hoverTimer);
+
+  /* breadcrumb — immediate */
   const ancs = d.ancestors().reverse();
   document.getElementById('breadcrumb').innerHTML =
     ancs.map((a, i) => {
@@ -801,32 +821,35 @@ function onNodeOver(event, d) {
       return `<span class="${cls}">${a.data.name}</span>`;
     }).join('<span class="bc-sep"> › </span>');
 
-  /* path highlight */
-  const ancSet  = new Set(d.ancestors().map(a => a.data.name));
-  const descSet = new Set();
-  (function addDesc(n) {
-    (n.children || n._children || []).forEach(c => { descSet.add(c.data.name); addDesc(c); });
-  })(d);
-
-  g.selectAll('.node').each(function (nd) {
-    const mine = nd.data.name === d.data.name;
-    const rel  = ancSet.has(nd.data.name) || descSet.has(nd.data.name) || mine;
-    d3.select(this).classed('dimmed', !rel).classed('lit', rel && !mine);
-  });
-  g.selectAll('.link').each(function (ld) {
-    const vis = (ancSet.has(ld.source.data.name) || descSet.has(ld.source.data.name) || ld.source.data.name === d.data.name)
-             && (ancSet.has(ld.target.data.name) || descSet.has(ld.target.data.name) || ld.target.data.name === d.data.name);
-    d3.select(this).classed('dimmed', !vis);
-  });
-
-  /* tooltip */
+  /* tooltip — immediate */
   const tip = TIPS[d.data.name];
+  const el = document.getElementById('tooltip');
   if (tip) {
-    const el = document.getElementById('tooltip');
     el.textContent = tip;
     el.style.opacity = 1;
     moveTip(event);
+  } else {
+    el.style.opacity = 0;
   }
+
+  /* path highlight — slight delay so rapid mouse movement doesn't cause flash */
+  hoverTimer = setTimeout(() => {
+    const ancSet  = new Set(d.ancestors().map(a => a.data.name));
+    const descSet = new Set();
+    (function addDesc(n) {
+      (n.children || n._children || []).forEach(c => { descSet.add(c.data.name); addDesc(c); });
+    })(d);
+
+    g.selectAll('.node').each(function (nd) {
+      const rel = ancSet.has(nd.data.name) || descSet.has(nd.data.name) || nd.data.name === d.data.name;
+      d3.select(this).classed('dimmed', !rel);
+    });
+    g.selectAll('.link').each(function (ld) {
+      const srcRel = ancSet.has(ld.source.data.name) || descSet.has(ld.source.data.name) || ld.source.data.name === d.data.name;
+      const tgtRel = ancSet.has(ld.target.data.name) || descSet.has(ld.target.data.name) || ld.target.data.name === d.data.name;
+      d3.select(this).classed('dimmed', !(srcRel && tgtRel));
+    });
+  }, 60);
 }
 
 function moveTip(event) {
@@ -839,9 +862,11 @@ function moveTip(event) {
 }
 
 function onNodeOut() {
-  document.getElementById('breadcrumb').innerHTML = '<span class="bc-item">Clinical trial designs</span>';
+  clearTimeout(hoverTimer);
+  currentHovered = null;
+  document.getElementById('breadcrumb').innerHTML = '<span class="bc-item">Study designs in epidemiology</span>';
   document.getElementById('tooltip').style.opacity = 0;
-  g.selectAll('.node').classed('dimmed', false).classed('lit', false);
+  g.selectAll('.node').classed('dimmed', false);
   g.selectAll('.link').classed('dimmed', false);
 }
 
