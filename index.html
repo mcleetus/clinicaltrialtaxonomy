@@ -336,13 +336,33 @@ const DATA = {
         },
 
         {
-          name: "Special designs", colorKey: "special", defaultOpen: false,
-          children: [
-            { name: "N-of-1 trials", colorKey: "special" },
-            { name: "Hybrid effectiveness–implementation trials", colorKey: "special" },
-            { name: "Non-inferiority cluster trials", colorKey: "special" },
-            { name: "Registry-based randomized trials", colorKey: "special" },
-            { name: "Decentralized / virtual trials", colorKey: "special" }
+           name: "Special designs", colorKey: "special", defaultOpen: false,
+  children: [
+    { name: "N-of-1 trials", colorKey: "special" },
+
+    {
+      name: "Hybrid effectiveness–implementation trials",
+      colorKey: "special",
+      defaultOpen: false,
+      children: [
+        { 
+          name: "Hybrid Type I (effectiveness primary; collects preliminary implementation data)", 
+          colorKey: "special" 
+        },
+        { 
+          name: "Hybrid Type II (tests effectiveness and implementation strategies equally)", 
+          colorKey: "special" 
+        },
+        { 
+          name: "Hybrid Type III (implementation strategy primary; observes effectiveness secondarily)", 
+          colorKey: "special" 
+        }
+      ]
+    },
+
+    { name: "Non-inferiority cluster trials", colorKey: "special" },
+    { name: "Registry-based randomized trials", colorKey: "special" },
+    { name: "Decentralized / virtual trials", colorKey: "special" }
           ]
         }
       ]
