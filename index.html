@@ -224,57 +224,69 @@ const DATA = {
       name: "Experimental studies (clinical trials)", colorKey: "experimental", defaultOpen: true,
       children: [
 
-        // ---------------------------
-        // FIXED SECTION
-        // ---------------------------
+// ---------------------------
+// FIXED SECTION
+// ---------------------------
+{
+  name: "By randomization",
+  colorKey: "randomization",
+  defaultOpen: true,
+  children: [
+    {
+      name: "Randomized controlled trial (RCT)",
+      colorKey: "randomization",
+      defaultOpen: true,
+      children: [
+
+        // Allocation structure
         {
-          name: "By randomization", colorKey: "randomization", defaultOpen: true,
+          name: "By allocation structure",
+          colorKey: "randomization",
+          defaultOpen: true,
           children: [
+            { name: "Parallel-group", colorKey: "randomization" },
+            { name: "Crossover", colorKey: "randomization" },
+            { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" }
+          ]
+        },
+
+        // Unit of randomisation
+        {
+          name: "By unit of randomization",
+          colorKey: "randomization",
+          defaultOpen: true,
+          children: [
+            { name: "Individually randomized", colorKey: "randomization" },
+
             {
-              name: "Randomized controlled trial (RCT)", colorKey: "randomization", defaultOpen: true,
+              name: "Cluster-randomized",
+              colorKey: "randomization",
               children: [
-
-                // Allocation structure
-                {
-                  name: "By allocation structure", colorKey: "randomization", defaultOpen: true,
-                  children: [
-                    { name: "Parallel-group", colorKey: "randomization" },
-                    { name: "Crossover", colorKey: "randomization" },
-                    { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" }
-                  ]
-                },
-
-                // Unit of randomisation
-                {
-                  name: "By unit of randomization", colorKey: "randomization", defaultOpen: true,
-                  children: [
-                    { name: "Individually randomized", colorKey: "randomization" },
-                    { name: "Stepped-wedge cluster", colorKey: "randomization" },
-                    { name: "Cluster-randomized", colorKey: "randomization",
-                      Children: [
-                        { name: "Stepped-wedge cluster", colorKey: "randomization" }
-                        ]
-                        }
-                     ]
-                  ]
-                }
-              ]
-            },
-
-            // Non-randomized
-            {
-              name: "Non-randomized / quasi-experimental", colorKey: "randomization", defaultOpen: false,
-              children: [
-                { name: "Controlled before–after", colorKey: "randomization" },
-                { name: "Interrupted time series", colorKey: "randomization" },
-                { name: "Single-arm trial", colorKey: "randomization" }
+                { name: "Parallel cluster trial", colorKey: "randomization" },
+                { name: "Stepped-wedge cluster", colorKey: "randomization" }
               ]
             }
           ]
-        },
-        // ---------------------------
-        // END FIXED SECTION
-        // ---------------------------
+        }
+      ]
+    },
+
+    // Non-randomized
+    {
+      name: "Non-randomized / quasi-experimental",
+      colorKey: "randomization",
+      defaultOpen: false,
+      children: [
+        { name: "Controlled before–after", colorKey: "randomization" },
+        { name: "Interrupted time series", colorKey: "randomization" },
+        { name: "Single-arm trial", colorKey: "randomization" }
+      ]
+    }
+  ]
+},
+// ---------------------------
+// END FIXED SECTION
+// ---------------------------
 
         {
           name: "By objective", colorKey: "objective", defaultOpen: false,
