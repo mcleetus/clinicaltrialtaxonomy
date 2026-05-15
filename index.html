@@ -195,7 +195,6 @@ const COLORS = {
   pragmatic:     { fill: "#E1F5EE", stroke: "#0F6E56", text: "#04342C", link: "#1D9E75", label: "Pragmatic vs. explanatory" },
   special:       { fill: "#FCEBEB", stroke: "#E24B4A", text: "#501313", link: "#F09595", label: "Special designs" }
 };
-
 const DATA = {
   name: "Clinical trial designs", colorKey: "root", defaultOpen: true,
   children: [
@@ -220,22 +219,47 @@ const DATA = {
         }
       ]
     },
+
     {
       name: "Experimental studies (clinical trials)", colorKey: "experimental", defaultOpen: true,
       children: [
+
+        // ---------------------------
+        // FIXED SECTION STARTS HERE
+        // ---------------------------
         {
-          name: "By randomization", colorKey: "randomization", defaultOpen: false,
+          name: "By randomization", colorKey: "randomization", defaultOpen: true,
           children: [
             {
-              name: "Randomized controlled trial (RCT)", colorKey: "randomization", defaultOpen: false,
+              name: "Randomized controlled trial (RCT)", colorKey: "randomization", defaultOpen: true,
               children: [
-                { name: "Parallel-group", colorKey: "randomization" },
-                { name: "Crossover", colorKey: "randomization" },
-                { name: "Cluster-randomized", colorKey: "randomization" },
-                { name: "Stepped-wedge cluster", colorKey: "randomization" },
-                { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" }
+
+                // FIRST DIMENSION: UNIT OF RANDOMISATION
+                {
+                  name: "By unit of randomization", colorKey: "randomization", defaultOpen: true,
+                  children: [
+                    {
+                      name: "Individually randomized", colorKey: "randomization",
+                      children: [
+                        { name: "Parallel-group", colorKey: "randomization" },
+                        { name: "Crossover", colorKey: "randomization" },
+                        { name: "Factorial (2×2, 3×3, etc.)", colorKey: "randomization" }
+                      ]
+                    },
+                    {
+                      name: "Cluster-randomized", colorKey: "randomization",
+                      children: [
+                        { name: "Parallel cluster trial", colorKey: "randomization" },
+                        { name: "Stepped-wedge cluster", colorKey: "randomization" },
+                        { name: "Cluster factorial", colorKey: "randomization" }
+                      ]
+                    }
+                  ]
+                }
               ]
             },
+
+            // NON-RANDOMIZED
             {
               name: "Non-randomized / quasi-experimental", colorKey: "randomization", defaultOpen: false,
               children: [
@@ -246,6 +270,10 @@ const DATA = {
             }
           ]
         },
+        // ---------------------------
+        // FIXED SECTION ENDS HERE
+        // ---------------------------
+
         {
           name: "By objective", colorKey: "objective", defaultOpen: false,
           children: [
@@ -254,6 +282,7 @@ const DATA = {
             { name: "Equivalence", colorKey: "objective" }
           ]
         },
+
         {
           name: "By phase", colorKey: "phase", defaultOpen: false,
           children: [
@@ -263,18 +292,19 @@ const DATA = {
             { name: "Phase IV — post-marketing", colorKey: "phase" }
           ]
         },
+
         {
           name: "Dose-finding designs", colorKey: "dosefinding", defaultOpen: false,
           children: [
             {
-              name: "Rule-based", colorKey: "dosefinding", defaultOpen: false,
+              name: "Rule-based", colorKey: "dosefinding",
               children: [
                 { name: "3+3", colorKey: "dosefinding" },
                 { name: "Accelerated titration", colorKey: "dosefinding" }
               ]
             },
             {
-              name: "Model-based / model-assisted", colorKey: "dosefinding", defaultOpen: false,
+              name: "Model-based / model-assisted", colorKey: "dosefinding",
               children: [
                 { name: "CRM (continual reassessment method)", colorKey: "dosefinding" },
                 { name: "mTPI / mTPI-2", colorKey: "dosefinding" },
@@ -284,6 +314,7 @@ const DATA = {
             }
           ]
         },
+
         {
           name: "Adaptive designs", colorKey: "adaptive", defaultOpen: false,
           children: [
@@ -297,6 +328,7 @@ const DATA = {
             { name: "Umbrella trials", colorKey: "adaptive" }
           ]
         },
+
         {
           name: "Pragmatic vs. explanatory", colorKey: "pragmatic", defaultOpen: false,
           children: [
@@ -304,16 +336,12 @@ const DATA = {
             { name: "Explanatory (ideal conditions)", colorKey: "pragmatic" }
           ]
         },
+
         {
           name: "Special designs", colorKey: "special", defaultOpen: false,
           children: [
             { name: "N-of-1 trials", colorKey: "special" },
-            { name: "Hybrid effectiveness–implementation trials", colorKey: "special", defaultOpen: false, children: [
-             { name: "Hybrid type I", colorKey: "special" },
-             { name: "Hybrid type II", colorKey: "special" },
-             { name: "Hybrid type III", colorKey: "special" }
-          ]
-             },
+            { name: "Hybrid effectiveness–implementation trials", colorKey: "special" },
             { name: "Non-inferiority cluster trials", colorKey: "special" },
             { name: "Registry-based randomized trials", colorKey: "special" },
             { name: "Decentralized / virtual trials", colorKey: "special" }
